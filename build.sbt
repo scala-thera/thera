@@ -4,6 +4,9 @@ val Cats          = "1.1.0"
 val CatsEffect    = "0.10.1"
 val KindProjector = "0.9.7"
 
+val CirceCore = "0.10.0-M1"
+val CirceYaml = "0.8.0"
+
 val CommonsIO = "2.6"
 
 lazy val commonSettings = Seq(
@@ -13,8 +16,12 @@ lazy val commonSettings = Seq(
 , libraryDependencies ++= Seq(
     "org.typelevel"  %% "cats-core"   % Cats
   , "org.typelevel"  %% "cats-effect" % CatsEffect
+  
+  , "io.circe" %% "circe-core" % CirceCore
+  , "io.circe" %% "circe-yaml" % CirceYaml
 
   , "commons-io" % "commons-io" % CommonsIO
+
   )
 
 , addCompilerPlugin("org.spire-math" %% "kind-projector" % KindProjector)

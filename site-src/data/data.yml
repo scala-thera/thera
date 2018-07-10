@@ -10,7 +10,7 @@ siteUrl: http://akmetiuk.com
 github: anatoliykmetyuk
 twitter: AKmetyuk
 linkedin: anatoliykmetyuk
-show_atom_feed: true
+show_atom_feed: "true"
 
 # Theme
 avatar: avatar_200.png

@@ -1,24 +1,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>$name$ - $title$</title>
-<meta name="author" content="$name$" />
+<title>#{name} - #{title}</title>
+<meta name="author" content="#{name}" />
 
-<meta name="description" content="$description$">
-<meta name="keywords" content="$keywords$">
+<meta name="description" content="#{description}">
+<meta name="keywords" content="#{keywords}">
 
 <!-- Facebook tags -->
-<meta property="og:title" content="$title$">
-<meta property="og:type" content="$if(website)$website$else$article$endif$">
-<meta property="og:url" content="$siteUrl$$url$">
-<meta property="og:image" content="$siteUrl$/assets/imgs/$thumbnail$">
-<meta property="og:description" content="$description$">
-<meta property="og:site_name" content="$siteTitle$">
-<meta property="og:locale" content="$locale$">
+<meta property="og:title" content="#{title}">
+<!-- <meta property="og:type" content="#if(website)#{website}else#{article}endif#">
+ --><meta property="og:url" content="#{siteUrl}#{url}">
+<meta property="og:image" content="#{siteUrl}/assets/imgs/#{thumbnail}">
+<meta property="og:description" content="#{description}">
+<meta property="og:site_name" content="#{siteTitle}">
+<meta property="og:locale" content="#{locale}">
 
 <!-- Twitter tags -->
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:description" content="$description$" />
-<meta name="twitter:title" content="$title$" />
-<meta name="twitter:site" content="@$twitter$" />
-<meta name="twitter:image" content="$siteUrl$/assets/imgs/$thumbnail$" />
-<meta name="twitter:creator" content="@$twitter$" />
+<meta name="twitter:description" content="#{description}" />
+<meta name="twitter:title" content="#{title}" />
+<meta name="twitter:site" content="@#{twitter}" />
+<meta name="twitter:image" content="#{siteUrl}/assets/imgs/#{thumbnail}" />
+<meta name="twitter:creator" content="@#{twitter}" />

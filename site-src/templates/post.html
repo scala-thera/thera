@@ -1,4 +1,6 @@
 --- default
+spread   := spread
+comments := comments
 ---
 
 <p class="meta">
@@ -8,7 +10,7 @@
   </a>
 </p>
 
-<h1 class="title">#title#</h1>
+<h1 class="title">#{title}</h1>
 
 <div id="post">
   #{body}
@@ -26,5 +28,6 @@
   </ul>
 </div>
  -->
-#partial("fragments/spread.html")#
-#partial("fragments/comments.html")#
+
+#{spread}
+#{comments}

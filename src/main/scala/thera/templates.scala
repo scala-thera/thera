@@ -17,6 +17,9 @@ object templates {
   def resolveTemplate(name: String): File =
      new File(s"site-src/templates/$name.html")
 
+  def resolveFragment(value: String): File =
+    new File(s"site-src/fragments/$value.html")
+
   /** Get template' templateBody, templateVars and nextTemplate */
   def parseTemplate(raw: String): Ef[Template] = att {
     // Parse header, as an Option
@@ -45,7 +48,7 @@ object templates {
     def loop(lines: List[String], accum: Map[String, String], lastVar: Option[String]): Map[String, String] = lines match {
       case varDef (name, value) :: ls => loop(ls, accum.updated(name, value), Some(name))
       case fragDef(name, value) :: ls =>
-        val fragContents = FileUtils.readFileToString(new File(s"assets/_fragment/$value.html"), "utf8")
+        val fragContents = FileUtils.readFileToString(resolveFragment(value), "utf8")
         loop(ls, accum.updated(name, fragContents), Some(name))
 
       case ident(contents)      :: ls => loop(ls, accum.updated(lastVar.get, accum(lastVar.get) + "\n" + contents), lastVar)
