@@ -1,0 +1,16 @@
+version: '3'
+services:
+  thera:
+    container_name: thera
+    build: .
+    ports:
+      - 8888:8888
+    volumes:
+      - home:/root
+      - .:/root/thera
+    stdin_open: true
+    tty: true
+
+volumes:
+  # pgdata:
+  home:

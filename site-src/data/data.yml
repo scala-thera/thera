@@ -1,0 +1,26 @@
+title: The blog of Anatolii Kmetiuk
+siteTitle: The blog of Anatolii Kmetiuk
+description: The blog of Anatolii Kmetiuk
+locale: en-GB
+keywords: scala,programming,functional programming,category theory,kmetiuk,kmetyuk,anatolii kmetiuk,anatoliy kmetyuk
+url: /
+siteUrl: http://akmetiuk.com
+
+# Social
+github: anatoliykmetyuk
+twitter: AKmetyuk
+linkedin: anatoliykmetyuk
+show_atom_feed: true
+
+# Theme
+avatar: avatar_200.png
+thumbnail: avatar_100.png
+
+# "Hi, I'm _______"
+name: Anatolii Kmetiuk
+email: anatoliykmetyuk@gmail.com
+
+# Google Analytics key, leave blank to ignore
+google_analytics_key: UA-75795865-1
+
+
