@@ -1,19 +1,20 @@
 package thera
 
 import java.io.File
-import java.util.regex.Matcher
+import scala.util.matching.Regex
 
 import org.apache.commons.io.FileUtils
 
 import cats._, cats.implicits._, cats.effect._, cats.data.{ EitherT => ET }
+import io.circe._
 
 
-case class TemplateLoopState(body: String, vars: Map[String, String], nextTemplatePath: Option[File])
+case class TemplateLoopState(body: String, vars: Json, nextTemplatePath: Option[File])
 
-case class Template(body: String, vars: Map[String, String], nextTemplateName: Option[String])
+case class Template(body: String, vars: Json, nextTemplateName: Option[String])
 
 object templates {
-  val varNameRegex = """[\w\d_-]+"""
+  val varNameRegex = """[\w\d_-\.]+"""
 
   def resolveTemplate(name: String): File =
      new File(s"site-src/templates/$name.html")
@@ -22,7 +23,7 @@ object templates {
     new File(s"site-src/fragments/$value.html")
 
   /** Get template' templateBody, templateVars and nextTemplate */
-  def parseTemplate(raw: String, fragmentResolver: String => File): Ef[Template] = att {
+  def parseTemplate(raw: String, fragmentResolver: String => File): Ef[Template] = {
     // Parse header, as an Option
     val rawLines: List[String] = raw.split("\n").toList
     val (header: Option[List[String]], body: List[String]) =
@@ -30,41 +31,41 @@ object templates {
         Some(rawLines.head :: rawLines.tail.takeWhile(_ != "---")) -> rawLines.reverse.takeWhile(_ != "---").reverse
       else None -> rawLines
 
-    // Take the first line, parse an optional next template
-    val nextTemplateName: Option[String] =
-      header.map(_.head.dropWhile(c => c == '-' || c == ' ')).filter(_.nonEmpty)
+    // Drop the first line
+    val configLines: List[String] =
+      header.map(lines => lines.tail).getOrElse(List.empty)
     
-    // Drop first and last lines
-    val varsLines: List[String] = header.map(lines => lines.tail).getOrElse(List.empty)
-    
-    val varDef  = s"""($varNameRegex)\\s*=\\s*(.*)""".r
-    val fragDef = s"""($varNameRegex)\\s*:=\\s*(.*)""".r
-    val ident   = s"""\\s{2}(.*)""".r
+    for {
+      // Read the config and its significant fields
+      config           <- exn { yaml.parser.parse(configLines.mkString("\n")) }
+      nextTemplateName <- exn { config.hcursor.get[Option[String]](const.config.template ) }
+      variables        <- exn { config.hcursor.get[Option[Json  ]](const.config.variables).map(_.getOrElse(Json.obj())) }
+      fragments        <- exn { config.hcursor.get[Option[Json  ]](const.config.fragments).map(_.getOrElse(Json.obj())) }
 
-    // For each line:
-    // If it follows the `a = b` pattern, create a new variable `a`
-    // If it follows the `a := b` pattern, read a fragment named `b` and save the contents under the variable `a`
-    // If it starts with an indent, append the line to the last encountered var
-    @annotation.tailrec
-    def loop(lines: List[String], accum: Map[String, String], lastVar: Option[String]): Map[String, String] = lines match {
-      case varDef (name, value) :: ls => loop(ls, accum.updated(name, value), Some(name))
-      case fragDef(name, value) :: ls =>
-        val fragContents = FileUtils.readFileToString(fragmentResolver(value), "utf8")
-        loop(ls, accum.updated(name, fragContents), Some(name))
+      // Populate fragments and variables. For each fragment in turn, resolve it with all current vars in scope
 
-      case ident(contents)      :: ls => loop(ls, accum.updated(lastVar.get, accum(lastVar.get) + "\n" + contents), lastVar)
-      case Nil => accum
-    }
-
-    val vars = loop(varsLines, Map(), None)
-    Template(body.mkString("\n"), vars, nextTemplateName)
+      fragmentsMap  <- exn { fragments.as[Map[String, String]] }
+      varsWithFrags <- fragmentsMap.foldM(variables) { case (vars, (k, v)) =>
+        for {
+          fragSource    <- att { fragmentResolver(v) }
+          fragPopulated <- apply(fragSource, vars)
+          varsUpdated    = vars.deepMerge(Json.obj(k, Json.fromString(fragPopulated)))
+        } yield varsUpdated }
+    } yield Template(body.mkString("\n"), varsWithFrags, nextTemplateName)    
   }
 
-  def populate(tml: String, vars: Map[String, String]): Ef[String] = att {
-    raw"#\{($varNameRegex)\}".r
-      .replaceAllIn(tml, m => Matcher.quoteReplacement(vars.getOrElse(m.group(1), m.group(0)).toString)) }
+  def populate(tml: String, vars: Json): Ef[String] = att {
+    raw"#\{($varNameRegex)\}".r.replaceAllIn(tml, m => run { for {
+      // Resolve variable name with the OOP-style dot ownership syntax
+      varPath   <- att { m.group(1).split(raw"\.").toList }
+      resCursor  = varPath.foldLeft(vars.hcursor: ACursor)
+        { (hc, pathElement) => hc.downFiled(pathElement) }
+      res       <- exn { resCursor.as[Option[String]] }.map(_.getOrElse(m.group(0)))
+    } yield Regex.quoteReplacement(res) } }
 
-  def apply(tmlPath: File, initialVars: Map[String, String] = Map()
+  def apply(
+        tmlPath         : File
+      , initialVars     : Json = Json.obj
       , fragmentResolver: String => File = resolveFragment): Ef[String] =
     Monad[Ef].tailRecM[TemplateLoopState, String](TemplateLoopState("", initialVars, Some(tmlPath)))
     { case TemplateLoopState(body, vars, None                  ) =>  // Terminal case: no next template
@@ -77,7 +78,9 @@ object templates {
           parsed <- parseTemplate(tmlRaw, fragmentResolver)
 
           // Update the `body` variable in the `vars`, merge it with `templateVars`. Populate the templateBody with the combined `vars`. This is the new `body`.
-          newVars  = vars.updated("body", body) ++ parsed.vars
+          newVars = vars
+            .deepMerge(parsed.vars)
+            .deepMerge(Json.obj("body", Json.fromString(body)))
           newBody <- populate(parsed.body, newVars)
 
           // Reiterate

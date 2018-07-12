@@ -21,8 +21,7 @@ object Main {
       // Config
       configRaw <- att { FileUtils.readFileToString(data, settings.enc) }
       config    <- exn { yaml.parser.parse(configRaw) }
-      vars      <- exn { config.as[Map[String, String]] }
-      _         <- att { println(s"Vars parsed:\n${vars.mkString("\n")}") }
+      _         <- att { println(s"Config parsed:\n${config}") }
 
       // Assemble assets
       _   <- att { FileUtils.copyDirectory(assets, new File("_site", "assets")) }
