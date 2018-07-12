@@ -54,7 +54,15 @@ object templates {
     } yield Template(body.mkString("\n"), varsWithFrags, nextTemplateName)    
   }
 
-  def populate(tml: String, vars: Json): Ef[String] = att {
+  type Populator = (String, Json) => Ef[String]
+
+  def populate(tml: String, vars: Json): Ef[String] =
+    List[Populator](
+      populateVars
+    , populateCommands)
+    .foldM(tml) { (t, f) => f(t) }
+
+  val populateVars: Populator = (tml, vars) => att {
     raw"#\{($varNameRegex)\}".r.replaceAllIn(tml, m => run { for {
       // Resolve variable name with the OOP-style dot ownership syntax
       varPath   <- att { m.group(1).split(raw"\.").toList }
@@ -62,6 +70,33 @@ object templates {
         { (hc, pathElement) => hc.downField(pathElement) }
       res       <- exn { resCursor.as[Option[String]] }.map(_.getOrElse(m.group(0)))
     } yield Regex.quoteReplacement(res) } ) }
+
+  val populateCommands: Populator = (tml, vars) =>
+    // Find all commands
+    val lines: List[(String, Option[Match])] = tml.split("\n").toList
+      .map { l => l -> raw"#\{cmdRegex\}".findFirstMatchIn(l) }
+
+    val res = Option(lines.indexWhere(_._2.isDefined)).filter(_ >= 0).map { startIdx =>
+      val (line, mtch)  = lines(startIdx)
+      val cmdName       = mtch.group(1)
+      val cmdArgs       = mtch.group(2)
+      val endIdx        = opt (Option(lines.lastIndexWhere { case (_, mtch) =>
+          mtch.group(1) == "end" && mtch.group(2) == cmdName }).filter(_ >= 0)
+          , s"Missing closing tag for command $cmdName") }
+
+      // Process body
+      val body          = lines.slice(startIdx + 1, endIdx).mkString("\n")
+      val cmdProcessor  = run { opt(commandProcessors.get(cmdName), s"Missing command processor for command $cmdName") }
+      val bodyProcessed = cmdProcessor(body, vars)
+
+      // Replace body and repeat
+      resThis = lines.slice(0, startIdx).mkString +
+        s"\n$bodyProcessed\n" + lines.slice(endIdx + 1, lines.length)
+      res = populateCommands(resThis, vars)
+    }.getOrElse(tml)
+
+    res
+
 
   def apply(
         tmlPath         : File
