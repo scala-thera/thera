@@ -54,50 +54,6 @@ object templates {
     } yield Template(body.mkString("\n"), varsWithFrags, nextTemplateName)    
   }
 
-  type Populator = (String, Json) => Ef[String]
-
-  def populate(tml: String, vars: Json): Ef[String] =
-    List[Populator](
-      populateVars
-    , populateCommands)
-    .foldM(tml) { (t, f) => f(t) }
-
-  val populateVars: Populator = (tml, vars) => att {
-    raw"#\{($varNameRegex)\}".r.replaceAllIn(tml, m => run { for {
-      // Resolve variable name with the OOP-style dot ownership syntax
-      varPath   <- att { m.group(1).split(raw"\.").toList }
-      resCursor  = varPath.foldLeft(vars.hcursor: ACursor)
-        { (hc, pathElement) => hc.downField(pathElement) }
-      res       <- exn { resCursor.as[Option[String]] }.map(_.getOrElse(m.group(0)))
-    } yield Regex.quoteReplacement(res) } ) }
-
-  val populateCommands: Populator = (tml, vars) =>
-    // Find all commands
-    val lines: List[(String, Option[Match])] = tml.split("\n").toList
-      .map { l => l -> raw"#\{cmdRegex\}".findFirstMatchIn(l) }
-
-    val res = Option(lines.indexWhere(_._2.isDefined)).filter(_ >= 0).map { startIdx =>
-      val (line, mtch)  = lines(startIdx)
-      val cmdName       = mtch.group(1)
-      val cmdArgs       = mtch.group(2)
-      val endIdx        = opt (Option(lines.lastIndexWhere { case (_, mtch) =>
-          mtch.group(1) == "end" && mtch.group(2) == cmdName }).filter(_ >= 0)
-          , s"Missing closing tag for command $cmdName") }
-
-      // Process body
-      val body          = lines.slice(startIdx + 1, endIdx).mkString("\n")
-      val cmdProcessor  = run { opt(commandProcessors.get(cmdName), s"Missing command processor for command $cmdName") }
-      val bodyProcessed = cmdProcessor(body, vars)
-
-      // Replace body and repeat
-      resThis = lines.slice(0, startIdx).mkString +
-        s"\n$bodyProcessed\n" + lines.slice(endIdx + 1, lines.length)
-      res = populateCommands(resThis, vars)
-    }.getOrElse(tml)
-
-    res
-
-
   def apply(
         tmlPath         : File
       , initialVars     : Json = Json.obj()
@@ -122,4 +78,77 @@ object templates {
           newTmlPath = parsed.nextTemplateName.map(resolveTemplate)
         } yield Left(TemplateLoopState(newBody, newVars, newTmlPath))
     }
+}
+
+object populate {
+  type Populator = (String, Json) => Ef[String]
+  type CommandProcessor = (String, Json, String) => Ef[String]
+
+  val cmdRegex = """[\w\d_\-\.\s]+"""
+
+  def apply(tml: String, vars: Json): Ef[String] =
+    List[Populator](
+      populateCommands  // Commands may use their own vars in the body, so first process commands and then variables
+    , populateVars)
+    .foldM(tml) { (t, f) => f(t) }
+
+  val populateVars: Populator = (tml, vars) => att {
+    raw"#\{($varNameRegex)\}".r.replaceAllIn(tml, m => run { for {
+      // Resolve variable name with the OOP-style dot ownership syntax
+      varPath   <- att { m.group(1).split(raw"\.").toList }
+      resCursor  = varPath.foldLeft(vars.hcursor: ACursor)
+        { (hc, pathElement) => hc.downField(pathElement) }
+      res       <- exn { resCursor.as[Option[String]] }.map(_.getOrElse(m.group(0)))
+    } yield Regex.quoteReplacement(res) } ) }
+
+  val populateCommands: Populator = (tml, vars) =>
+    Monad[Ef].tailRecM(tml) { tml =>
+      // Find first command
+      val cmds = raw"#\{cmdRegex\}".r.findFirstAllMatchIn(tml).toList
+      if (cmds.isEmpty) Monad[Ef].pure(Right(tml))
+      else {
+        val mtch     = cmds.head
+        val cmdName  = mtch.group(1)
+        val cmdArgs  = mtch.group(2)
+        val startIdx = mtch.start
+
+        for {
+          endMtch <- opt(
+            cmds.reverse.find { m => m.group(1) == "end" && m.group(2) == cmdName }
+          , s"Closing tag for command $cmdName not found")
+          
+          cmdProcessor <- opt(
+            commandProcessors.get(cmdName)
+          , s"Missing command processor for command $cmdName")
+
+          endIdx   = endMtch.end
+          body     = tml.substring(startIdx, endIdx)
+          bodyRes <- cmdProcessor(body, vars, cmdArgs)
+
+          cmdRes = tml.substring(0, startIdx) + bodyRes + tml.substring(endIdx)
+        } yield Left(cmdRes)
+      }
+    }
+
+  lazy val commandProcessors: Map[String, CommandProcessor] = Map(
+    "for" -> forProcessor
+  , "if"  -> ifProcessor)
+
+  val forProcessor: CommandProcessor = (tml, vars, args) =>
+    for {
+      arrayAndVar <- args.split(" ").toList match {
+        case arr :: vn :: Nil => pur { arr -> vn }
+        case x => err(s"Incorrect format for `for` command. Expected: `for <array> <variable>`, got: $x") }
+      (array, varName) = arrayAndVar
+
+      entries <- att { vars.get[List[Json]](array) }
+      res     <- entries.foldM("") { (accum, e) =>
+        template.populateVars(tml, vars.deepMerge { Json.obj(varName -> e) })
+          .map(accum + _) }
+    } yield res
+
+  val ifProcessor: CommandProcessor = (tml, vars, varName) =>
+    opt { vars.hcursor.keys }.map { keys =>
+      if (keys.contains(varName)) tml else "" }
+
 }
