@@ -1,6 +1,7 @@
 package thera
 
 import java.io.File
+import java.util.regex.Matcher
 
 import org.apache.commons.io.FileUtils
 
@@ -61,7 +62,7 @@ object templates {
 
   def populate(tml: String, vars: Map[String, String]): Ef[String] = att {
     raw"#\{($varNameRegex)\}".r
-      .replaceAllIn(tml, m => vars.getOrElse(m.group(1), m.group(0)).toString) }
+      .replaceAllIn(tml, m => Matcher.quoteReplacement(vars.getOrElse(m.group(1), m.group(0)).toString)) }
 
   def apply(tmlPath: File, initialVars: Map[String, String] = Map()
       , fragmentResolver: String => File = resolveFragment): Ef[String] =
