@@ -21,7 +21,7 @@ object templates {
     new File(s"site-src/fragments/$value.html")
 
   /** Get template' templateBody, templateVars and nextTemplate */
-  def parseTemplate(raw: String, fragmentResolver: String => File): Ef[Template] = {
+  def parseTemplate(raw: String, globalVars: Json, fragmentResolver: String => File): Ef[Template] = {
     // Parse header, as an Option
     val rawLines: List[String] = raw.split("\n").toList
     val (header: Option[List[String]], body: List[String]) =
@@ -37,13 +37,14 @@ object templates {
       // Read the config and its significant fields
       config           <- exn { configRaw.map(yaml.parser.parse).getOrElse(Either.right { Json.obj() } ) }
       nextTemplateName <- exn { config.hcursor.get[Option[String]]("template" ) }
-      variables        <- exn { config.hcursor.get[Option[Json  ]]("variables").map(_.getOrElse(Json.obj())) }
+      localVars        <- exn { config.hcursor.get[Option[Json  ]]("variables").map(_.getOrElse(Json.obj())) }
       fragments        <- exn { config.hcursor.get[Option[Json  ]]("fragments").map(_.getOrElse(Json.obj())) }
 
       // Populate fragments and variables. For each fragment in turn, resolve it with all current vars in scope
 
+      allVars        = globalVars deepMerge localVars
       fragmentsMap  <- exn { fragments.as[Map[String, String]] }
-      varsWithFrags <- fragmentsMap.toList.foldM(variables) { case (vars, (k, v)) =>
+      varsWithFrags <- fragmentsMap.toList.foldM(allVars) { case (vars, (k, v)) =>
         for {
           fragSource    <- att { fragmentResolver(v) }
           fragPopulated <- apply(fragSource, vars)
@@ -64,7 +65,7 @@ object templates {
         for {
           // Read the template from the path.
           tmlRaw <- att { FileUtils.readFileToString(nextTemplatePath, settings.enc) }
-          parsed <- parseTemplate(tmlRaw, fragmentResolver)
+          parsed <- parseTemplate(tmlRaw, vars, fragmentResolver)
 
           // Update the `body` variable in the `vars`, merge it with `templateVars`. Populate the templateBody with the combined `vars`. This is the new `body`.
           newVars = vars
@@ -82,7 +83,7 @@ object populate {
   type Populator = (String, Json) => Ef[String]
   type CommandProcessor = (String, Json, String) => Ef[String]
 
-  val cmdRegex     = """[\w\d_\-\.\s]+"""
+  val cmdRegex     = """([\w\d_\-]+)\s+([\w\d_\-\.\s]+)"""
   val varNameRegex = """[\w\d_\-\.]+"""
 
   def apply(tml: String, vars: Json): Ef[String] =
@@ -105,35 +106,36 @@ object populate {
   val populateCommands: Populator = (tml, vars) =>
     Monad[Ef].tailRecM(tml) { tml =>
       // Find first command
-      val cmds = raw"#\{cmdRegex\}".r.findAllMatchIn(tml).toList
+      val cmds = raw"#\{$cmdRegex\}".r.findAllMatchIn(tml).toList
+
       if (cmds.isEmpty) Monad[Ef].pure(Right(tml))
       else {
         val mtch     = cmds.head
         val cmdName  = mtch.group(1)
         val cmdArgs  = mtch.group(2)
-        val startIdx = mtch.start
 
         for {
           endMtch <- opt(
-            cmds.reverse.find { m => m.group(1) == "end" && m.group(2) == cmdName }
-          , s"Closing tag for command $cmdName not found")
+            cmds.find { m => m.group(1) == "end" && m.group(2) == cmdName }
+          , s"Closing tag for command `$cmdName` not found")
           
           cmdProcessor <- opt(
             commandProcessors.get(cmdName)
-          , s"Missing command processor for command $cmdName")
+          , s"Missing command processor for command `$cmdName`")
 
-          endIdx   = endMtch.end
-          body     = tml.substring(startIdx, endIdx)
+          body     = tml.substring(mtch.end, endMtch.start)
           bodyRes <- cmdProcessor(body, vars, cmdArgs)
 
-          cmdRes = tml.substring(0, startIdx) + bodyRes + tml.substring(endIdx)
+          _ = println(s"Body of $cmdName: $bodyRes")
+          cmdRes = tml.substring(0, mtch.start) + bodyRes + tml.substring(endMtch.end)
         } yield Left(cmdRes)
       }
     }
 
   lazy val commandProcessors: Map[String, CommandProcessor] = Map(
-    "for" -> forProcessor
-  , "if"  -> ifProcessor)
+    "for"      -> forProcessor
+  , "if"       -> ifProcessor
+  , "mkstring" -> mkstringProcessor)
 
   val forProcessor: CommandProcessor = (tml, vars, args) =>
     for {
@@ -148,10 +150,19 @@ object populate {
           .map(accum + _) }
     } yield res
 
-  val ifProcessor: CommandProcessor = (tml, vars, varName) => for {
-    varRes <- exn { resolveVar(varName, vars).as[Option[Json]] }
-    res     = varRes match {
-      case Some(_) => tml
-      case None    => "" }
-  } yield res
+  val ifProcessor: CommandProcessor = (tml, vars, args) => {
+    def resolveAndThen(varName: String, todo: Option[Json] => String): Ef[String] =
+      exn { resolveVar(varName, vars).as[Option[Json]] }.map(todo)
+
+    args.split(" ").toList match {
+      case varName :: Nil =>
+        resolveAndThen(varName, _.fold("")(_ => tml))
+
+      case "not" :: varName :: Nil =>
+        resolveAndThen(varName, _.fold(tml)(_ => ""))
+    }
+  }
+
+  val mkstringProcessor: CommandProcessor = (tml, vars, array) =>
+    exn { vars.hcursor.get[List[String]](array) }.map(_.mkString(tml))
 }

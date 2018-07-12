@@ -4,12 +4,12 @@
 <meta name="author" content="#{name}" />
 
 <meta name="description" content="#{description}">
-<meta name="keywords" content="#{mkstring keywords ,}">
+<meta name="keywords" content="#{mkstring keywords},#{end mkstring}">
 
 <!-- Facebook tags -->
 <meta property="og:title" content="#{title}">
-<!-- <meta property="og:type" content="#if(website)#{website}else#{article}endif#">
- --><meta property="og:url" content="#{siteUrl}#{url}">
+<meta property="og:type" content="#{if website}website#{end if}#{if not website}article#{end if}">
+<meta property="og:url" content="#{siteUrl}#{url}">
 <meta property="og:image" content="#{siteUrl}/assets/imgs/#{thumbnail}">
 <meta property="og:description" content="#{description}">
 <meta property="og:site_name" content="#{siteTitle}">
