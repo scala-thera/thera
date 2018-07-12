@@ -1,1 +1,1 @@
-Simple Sbt project with Scala.
+A static website generator for Scala, similar to Jekyll for Ruby or Hakyll for Haskell. Work in progress.
