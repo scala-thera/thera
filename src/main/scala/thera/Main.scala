@@ -1,5 +1,7 @@
 package thera
 
+import scala.collection.JavaConverters._
+
 import java.io.File
 import org.apache.commons.io.FileUtils
 
@@ -23,11 +25,22 @@ object Main {
       _         <- att { println(s"Vars parsed:\n${vars.mkString("\n")}") }
 
       // Assemble assets
-      _ <- att { FileUtils.copyDirectory(assets, new File("_site", "assets")) }
+      _   <- att { FileUtils.copyDirectory(assets, new File("_site", "assets")) }
+      css <- templates(
+        new File("site-src/private-assets/css/all.css")
+      , fragmentResolver = name => new File(s"site-src/private-assets/css/${name}.css"))
+      _   <- att { FileUtils.writeStringToFile(new File("_site/assets/all.css"), css, settings.enc) }
 
       // Process input post
       res <- templates(input, vars)
       _   <- att { FileUtils.writeStringToFile(output, res, settings.enc) }
+
+      // _ <- index(vars)
     } yield () }
   }
+
+  // def index(vars: Map[String, String]): Ef[Unit] =
+  //   for {
+
+  //   }
 }

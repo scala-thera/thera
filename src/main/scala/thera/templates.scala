@@ -21,7 +21,7 @@ object templates {
     new File(s"site-src/fragments/$value.html")
 
   /** Get template' templateBody, templateVars and nextTemplate */
-  def parseTemplate(raw: String): Ef[Template] = att {
+  def parseTemplate(raw: String, fragmentResolver: String => File): Ef[Template] = att {
     // Parse header, as an Option
     val rawLines: List[String] = raw.split("\n").toList
     val (header: Option[List[String]], body: List[String]) =
@@ -48,7 +48,7 @@ object templates {
     def loop(lines: List[String], accum: Map[String, String], lastVar: Option[String]): Map[String, String] = lines match {
       case varDef (name, value) :: ls => loop(ls, accum.updated(name, value), Some(name))
       case fragDef(name, value) :: ls =>
-        val fragContents = FileUtils.readFileToString(resolveFragment(value), "utf8")
+        val fragContents = FileUtils.readFileToString(fragmentResolver(value), "utf8")
         loop(ls, accum.updated(name, fragContents), Some(name))
 
       case ident(contents)      :: ls => loop(ls, accum.updated(lastVar.get, accum(lastVar.get) + "\n" + contents), lastVar)
@@ -63,15 +63,17 @@ object templates {
     raw"#\{($varNameRegex)\}".r
       .replaceAllIn(tml, m => vars.getOrElse(m.group(1), m.group(0)).toString) }
 
-  def apply(tmlPath: File, initialVars: Map[String, String] = Map()): Ef[String] =
+  def apply(tmlPath: File, initialVars: Map[String, String] = Map()
+      , fragmentResolver: String => File = resolveFragment): Ef[String] =
     Monad[Ef].tailRecM[TemplateLoopState, String](TemplateLoopState("", initialVars, Some(tmlPath)))
-    { case TemplateLoopState(body, _   , None                  ) =>  // Terminal case: no next template
-        att { Either.right { raw"#\{($varNameRegex)\}".r.replaceAllIn(body, _ => "") } }
+    { case TemplateLoopState(body, vars, None                  ) =>  // Terminal case: no next template
+        // att { Either.right { raw"#\{($varNameRegex)\}".r.replaceAllIn(body, _ => "") } }
+        populate(body, vars).map(Either.right(_))
       case TemplateLoopState(body, vars, Some(nextTemplatePath)) =>
         for {
           // Read the template from the path.
           tmlRaw <- att { FileUtils.readFileToString(nextTemplatePath, settings.enc) }
-          parsed <- parseTemplate(tmlRaw)
+          parsed <- parseTemplate(tmlRaw, fragmentResolver)
 
           // Update the `body` variable in the `vars`, merge it with `templateVars`. Populate the templateBody with the combined `vars`. This is the new `body`.
           newVars  = vars.updated("body", body) ++ parsed.vars
