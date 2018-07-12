@@ -8,6 +8,10 @@ variables:
   custom:
     stuff: 'Atsuko Maeda'
 ---
+#{for keywords k}#{k},#{end for}
+#{if custom.stuff}Custom stuff is defined to #{custom.stuff}#{end if}
+#{if bar}Bar is also defined#{end if}
+
 > Recursion is the GOTO of functional programming - Erik Meijer[^1]
 
 [^1]: [https://twitter.com/headinthebox/status/384105824315928577?lang=en](https://twitter.com/headinthebox/status/384105824315928577?lang=en)

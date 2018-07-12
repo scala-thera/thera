@@ -91,13 +91,15 @@ object populate {
       populateCommands  // Commands may use their own vars in the body, so first process commands and then variables
     , populateVars)
     .foldM(tml) { (t, f) => f(t) }
+  
+  // Resolve variable name with the OOP-style dot ownership syntax
+  def resolveVar(path: String, vars: Json): ACursor =
+    path.split(raw"\.").toList.foldLeft(vars.hcursor: ACursor)
+      { (hc, pathElement) => hc.downField(pathElement) }
 
   val populateVars: Populator = (tml, vars) => att {
     raw"#\{($varNameRegex)\}".r.replaceAllIn(tml, m => run { for {
-      // Resolve variable name with the OOP-style dot ownership syntax
-      varPath   <- att { m.group(1).split(raw"\.").toList }
-      resCursor  = varPath.foldLeft(vars.hcursor: ACursor)
-        { (hc, pathElement) => hc.downField(pathElement) }
+      resCursor <- att { resolveVar(m.group(1)) }
       res       <- exn { resCursor.as[Option[String]] }.map(_.getOrElse(m.group(0)))
     } yield Regex.quoteReplacement(res) } ) }
 
@@ -147,8 +149,10 @@ object populate {
           .map(accum + _) }
     } yield res
 
-  val ifProcessor: CommandProcessor = (tml, vars, varName) =>
-    opt { vars.hcursor.keys }.map { keys =>
-      if (keys.contains(varName)) tml else "" }
-
+  val ifProcessor: CommandProcessor = (tml, vars, varName) => att {
+    template.resolveVar(varName, vars).as[Option[Json]] match {
+      case Some(_) => tml
+      case None    => ""
+    }
+  }
 }
