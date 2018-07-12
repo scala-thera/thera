@@ -14,8 +14,6 @@ case class TemplateLoopState(body: String, vars: Json, nextTemplatePath: Option[
 case class Template(body: String, vars: Json, nextTemplateName: Option[String])
 
 object templates {
-  val varNameRegex = """[\w\d_\-\.]+"""
-
   def resolveTemplate(name: String): File =
      new File(s"site-src/templates/$name.html")
 
@@ -84,13 +82,14 @@ object populate {
   type Populator = (String, Json) => Ef[String]
   type CommandProcessor = (String, Json, String) => Ef[String]
 
-  val cmdRegex = """[\w\d_\-\.\s]+"""
+  val cmdRegex     = """[\w\d_\-\.\s]+"""
+  val varNameRegex = """[\w\d_\-\.]+"""
 
   def apply(tml: String, vars: Json): Ef[String] =
     List[Populator](
       populateCommands  // Commands may use their own vars in the body, so first process commands and then variables
     , populateVars)
-    .foldM(tml) { (t, f) => f(t) }
+    .foldM(tml) { (t, f) => f(t, vars) }
   
   // Resolve variable name with the OOP-style dot ownership syntax
   def resolveVar(path: String, vars: Json): ACursor =
@@ -99,14 +98,14 @@ object populate {
 
   val populateVars: Populator = (tml, vars) => att {
     raw"#\{($varNameRegex)\}".r.replaceAllIn(tml, m => run { for {
-      resCursor <- att { resolveVar(m.group(1)) }
+      resCursor <- att { resolveVar(m.group(1), vars) }
       res       <- exn { resCursor.as[Option[String]] }.map(_.getOrElse(m.group(0)))
     } yield Regex.quoteReplacement(res) } ) }
 
   val populateCommands: Populator = (tml, vars) =>
     Monad[Ef].tailRecM(tml) { tml =>
       // Find first command
-      val cmds = raw"#\{cmdRegex\}".r.findFirstAllMatchIn(tml).toList
+      val cmds = raw"#\{cmdRegex\}".r.findAllMatchIn(tml).toList
       if (cmds.isEmpty) Monad[Ef].pure(Right(tml))
       else {
         val mtch     = cmds.head
@@ -143,16 +142,16 @@ object populate {
         case x => err(s"Incorrect format for `for` command. Expected: `for <array> <variable>`, got: $x") }
       (array, varName) = arrayAndVar
 
-      entries <- att { vars.get[List[Json]](array) }
+      entries <- exn { vars.hcursor.get[List[Json]](array) }
       res     <- entries.foldM("") { (accum, e) =>
-        template.populateVars(tml, vars.deepMerge { Json.obj(varName -> e) })
+        populateVars(tml, vars.deepMerge { Json.obj(varName -> e) })
           .map(accum + _) }
     } yield res
 
-  val ifProcessor: CommandProcessor = (tml, vars, varName) => att {
-    template.resolveVar(varName, vars).as[Option[Json]] match {
+  val ifProcessor: CommandProcessor = (tml, vars, varName) => for {
+    varRes <- exn { resolveVar(varName, vars).as[Option[Json]] }
+    res     = varRes match {
       case Some(_) => tml
-      case None    => ""
-    }
-  }
+      case None    => "" }
+  } yield res
 }

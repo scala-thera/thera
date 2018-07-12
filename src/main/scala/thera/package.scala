@@ -5,7 +5,7 @@ package object thera {
   type Ef[A] = EitherT[IO, NEL[String], A]
 
   /** IO Effect */
-  def ioe[A](x: IO[A]): Ef[A] = EitherT.right[IO, NEL[String]](x)
+  def ioe[A](x: IO[A]): Ef[A] = EitherT.right[NEL[String]](x)
 
   /** Option */
   def opt[A](o: Option[A], msg: String = "Empty option error"): Ef[A] = o
