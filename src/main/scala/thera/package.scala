@@ -15,7 +15,8 @@ package object thera {
 
   /** Exception under Either */
   def exn[A, E <: Throwable](e: Either[E, A]): Ef[A] =
-    EitherT(IO[Either[NEL[String], A]] { e.leftMap(x => NEL(x.getMessage, Nil)) })
+    EitherT(IO[Either[NEL[String], A]] { e.leftMap(x =>
+      NEL(x.getMessage + "\n" + x.getStackTrace.mkString("\n"), Nil)) })
 
   /** Attempt to run an error-prone computation */
   def att[A](a: => A): Ef[A] = exn { Try(a).toEither }

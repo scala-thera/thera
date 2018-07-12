@@ -31,7 +31,7 @@ object Main {
       _   <- att { FileUtils.writeStringToFile(new File("_site/assets/all.css"), css, settings.enc) }
 
       // Process input post
-      res <- templates(input, vars)
+      res <- templates(input, config)
       _   <- att { FileUtils.writeStringToFile(output, res, settings.enc) }
 
       // _ <- index(vars)

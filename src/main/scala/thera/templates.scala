@@ -14,7 +14,7 @@ case class TemplateLoopState(body: String, vars: Json, nextTemplatePath: Option[
 case class Template(body: String, vars: Json, nextTemplateName: Option[String])
 
 object templates {
-  val varNameRegex = """[\w\d_-\.]+"""
+  val varNameRegex = """[\w\d_\-\.]+"""
 
   def resolveTemplate(name: String): File =
      new File(s"site-src/templates/$name.html")
@@ -32,24 +32,24 @@ object templates {
       else None -> rawLines
 
     // Drop the first line
-    val configLines: List[String] =
-      header.map(lines => lines.tail).getOrElse(List.empty)
+    val configRaw: Option[String] =
+      header.map(lines => lines.tail.mkString("\n"))
     
     for {
       // Read the config and its significant fields
-      config           <- exn { yaml.parser.parse(configLines.mkString("\n")) }
-      nextTemplateName <- exn { config.hcursor.get[Option[String]](const.config.template ) }
-      variables        <- exn { config.hcursor.get[Option[Json  ]](const.config.variables).map(_.getOrElse(Json.obj())) }
-      fragments        <- exn { config.hcursor.get[Option[Json  ]](const.config.fragments).map(_.getOrElse(Json.obj())) }
+      config           <- exn { configRaw.map(yaml.parser.parse).getOrElse(Either.right { Json.obj() } ) }
+      nextTemplateName <- exn { config.hcursor.get[Option[String]]("template" ) }
+      variables        <- exn { config.hcursor.get[Option[Json  ]]("variables").map(_.getOrElse(Json.obj())) }
+      fragments        <- exn { config.hcursor.get[Option[Json  ]]("fragments").map(_.getOrElse(Json.obj())) }
 
       // Populate fragments and variables. For each fragment in turn, resolve it with all current vars in scope
 
       fragmentsMap  <- exn { fragments.as[Map[String, String]] }
-      varsWithFrags <- fragmentsMap.foldM(variables) { case (vars, (k, v)) =>
+      varsWithFrags <- fragmentsMap.toList.foldM(variables) { case (vars, (k, v)) =>
         for {
           fragSource    <- att { fragmentResolver(v) }
           fragPopulated <- apply(fragSource, vars)
-          varsUpdated    = vars.deepMerge(Json.obj(k, Json.fromString(fragPopulated)))
+          varsUpdated    = vars.deepMerge(Json.obj(k -> Json.fromString(fragPopulated)))
         } yield varsUpdated }
     } yield Template(body.mkString("\n"), varsWithFrags, nextTemplateName)    
   }
@@ -59,13 +59,13 @@ object templates {
       // Resolve variable name with the OOP-style dot ownership syntax
       varPath   <- att { m.group(1).split(raw"\.").toList }
       resCursor  = varPath.foldLeft(vars.hcursor: ACursor)
-        { (hc, pathElement) => hc.downFiled(pathElement) }
+        { (hc, pathElement) => hc.downField(pathElement) }
       res       <- exn { resCursor.as[Option[String]] }.map(_.getOrElse(m.group(0)))
-    } yield Regex.quoteReplacement(res) } }
+    } yield Regex.quoteReplacement(res) } ) }
 
   def apply(
         tmlPath         : File
-      , initialVars     : Json = Json.obj
+      , initialVars     : Json = Json.obj()
       , fragmentResolver: String => File = resolveFragment): Ef[String] =
     Monad[Ef].tailRecM[TemplateLoopState, String](TemplateLoopState("", initialVars, Some(tmlPath)))
     { case TemplateLoopState(body, vars, None                  ) =>  // Terminal case: no next template
@@ -80,7 +80,7 @@ object templates {
           // Update the `body` variable in the `vars`, merge it with `templateVars`. Populate the templateBody with the combined `vars`. This is the new `body`.
           newVars = vars
             .deepMerge(parsed.vars)
-            .deepMerge(Json.obj("body", Json.fromString(body)))
+            .deepMerge(Json.obj("body" -> Json.fromString(body)))
           newBody <- populate(parsed.body, newVars)
 
           // Reiterate
