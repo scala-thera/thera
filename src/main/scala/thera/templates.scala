@@ -104,7 +104,7 @@ object templateFilters {
   }
 
   val postFilter: TemplateFilter = tml => {
-    val proc = sys.runtime.exec("../filters/postFilter.sh", null, new File("_site"))
+    val proc = sys.runtime.exec("../src/main/bash/postFilter.sh", null, new File("_site"))
     val is   = proc.getInputStream
     val os   = proc.getOutputStream
     val es   = proc.getErrorStream
