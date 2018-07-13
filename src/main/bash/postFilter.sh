@@ -1,8 +1,7 @@
 #!/usr/bin/env bash
-
-echo -n $1 | pandoc \
+pandoc \
   --toc \
   --webtex \
-  --template=tml.html \
-  --filter src/main/python/graphviz.py \
-  --filter src/main/python/plantuml.py
+  --template=../site-src/templates/pandoc-post.html \
+  --filter ../src/main/python/graphviz.py \
+  --filter ../src/main/python/plantuml.py

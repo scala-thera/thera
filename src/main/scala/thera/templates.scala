@@ -95,12 +95,34 @@ object templateFilters {
   lazy val filters: Map[String, TemplateFilter] = Map(
     "post" -> postFilter)
 
-  val postFilter: TemplateFilter = tml =>
-    for {
-      proc <- att { sys.runtime.exec(Array("src/main/bash/postFilter.sh", tml)) }
-      res  <- att { IOUtils.toString(proc.getInputStream, settings.enc) }
-      _    <- asy { proc.waitFor() }
-    } yield res
+  def main(args: Array[String]): Unit = {
+    val proc = sys.runtime.exec("../src/main/bash/postFilter.sh", null, new File("_site"))
+    IOUtils.write("foo", proc.getOutputStream, settings.enc)
+    proc.getOutputStream.close()
+    val res = IOUtils.toString(proc.getInputStream, settings.enc)
+    println(res)
+  }
+
+  val postFilter: TemplateFilter = tml => {
+    val proc = sys.runtime.exec("../src/main/bash/postFilter.sh", null, new File("_site"))
+    val is   = proc.getInputStream
+    val os   = proc.getOutputStream
+    val es   = proc.getErrorStream
+
+    def closeAll(): Unit = {
+      os.close()
+      is.close()
+      es.close()
+    }
+
+    (for {
+      _   <- att { IOUtils.write(tml, os, settings.enc) }
+      _   <- att { os.close() }
+      res <- att { IOUtils.toString(is, settings.enc)}
+      _   <- att { println(IOUtils.toString(es, settings.enc)) }
+      _   <- att { closeAll() }
+    } yield res).leftMap(e => { closeAll(); e })
+  }
 }
 
 object populate {
