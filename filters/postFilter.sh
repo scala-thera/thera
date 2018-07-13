@@ -3,5 +3,5 @@ pandoc \
   --toc \
   --webtex \
   --template=../site-src/templates/pandoc-post.html \
-  --filter ../src/main/python/graphviz.py \
-  --filter ../src/main/python/plantuml.py
+  --filter ../filters/pandocfilters/examples/graphviz.py \
+  --filter ../filters/pandocfilters/examples/plantuml.py
