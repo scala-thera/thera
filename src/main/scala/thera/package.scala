@@ -7,6 +7,9 @@ package object thera {
   /** IO Effect */
   def ioe[A](x: IO[A]): Ef[A] = EitherT.right[NEL[String]](x)
 
+  /** Async computation */
+  def asy[A](x: => A): Ef[A] = ioe { IO(x) }
+
   /** Option */
   def opt[A](o: Option[A], msg: String = "Empty option error"): Ef[A] = o
     .map { x =>  EitherT.rightT[IO, NEL[String]](x)   }

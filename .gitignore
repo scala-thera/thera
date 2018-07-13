@@ -24,3 +24,4 @@ project/plugins/project/
 # Project-specific data
 /data/
 /_site/
+/pandoc-exp/

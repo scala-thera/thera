@@ -3,7 +3,7 @@ package thera
 import java.io.File
 import scala.util.matching.Regex
 
-import org.apache.commons.io.FileUtils
+import org.apache.commons.io.{ FileUtils, IOUtils }
 
 import cats._, cats.implicits._, cats.effect._, cats.data.{ EitherT => ET }
 import io.circe._
@@ -11,7 +11,7 @@ import io.circe._
 
 case class TemplateLoopState(body: String, vars: Json, nextTemplatePath: Option[File])
 
-case class Template(body: String, vars: Json, nextTemplateName: Option[String])
+case class Template(body: String, vars: Json, nextTemplateName: Option[String], filters: List[String])
 
 object templates {
   def resolveTemplate(name: String): File =
@@ -33,15 +33,21 @@ object templates {
     val configRaw: Option[String] =
       header.map(lines => lines.tail.mkString("\n"))
     
+    def getConfigFieldOpt[A: Decoder](config: Json, name: String): Ef[Option[A]] =
+      exn { config.hcursor.get[Option[A]](name) }
+
+    def getConfigFieldWithDefault[A: Decoder](config: Json, name: String, default: A): Ef[A] =
+      getConfigFieldOpt(config, name).map(_.getOrElse(default))
+
     for {
       // Read the config and its significant fields
       config           <- exn { configRaw.map(yaml.parser.parse).getOrElse(Either.right { Json.obj() } ) }
-      nextTemplateName <- exn { config.hcursor.get[Option[String]]("template" ) }
-      localVars        <- exn { config.hcursor.get[Option[Json  ]]("variables").map(_.getOrElse(Json.obj())) }
-      fragments        <- exn { config.hcursor.get[Option[Json  ]]("fragments").map(_.getOrElse(Json.obj())) }
+      nextTemplateName <- getConfigFieldOpt[String](config, "template")
+      localVars        <- getConfigFieldWithDefault[Json](config, "variables", Json.obj())
+      fragments        <- getConfigFieldWithDefault[Json](config, "fragments", Json.obj())
+      filters          <- getConfigFieldWithDefault[List[String]](config, "filters", Nil)
 
       // Populate fragments and variables. For each fragment in turn, resolve it with all current vars in scope
-
       allVars        = globalVars deepMerge localVars
       fragmentsMap  <- exn { fragments.as[Map[String, String]] }
       varsWithFrags <- fragmentsMap.toList.foldM(allVars) { case (vars, (k, v)) =>
@@ -50,7 +56,7 @@ object templates {
           fragPopulated <- apply(fragSource, vars)
           varsUpdated    = vars.deepMerge(Json.obj(k -> Json.fromString(fragPopulated)))
         } yield varsUpdated }
-    } yield Template(body.mkString("\n"), varsWithFrags, nextTemplateName)    
+    } yield Template(body.mkString("\n"), varsWithFrags, nextTemplateName, filters)    
   }
 
   def apply(
@@ -67,16 +73,34 @@ object templates {
           tmlRaw <- att { FileUtils.readFileToString(nextTemplatePath, settings.enc) }
           parsed <- parseTemplate(tmlRaw, vars, fragmentResolver)
 
+          // Apply appropriate for this type filters
+          filters = parsed.filters.map(templateFilters.filters)
+          tmlBodyFiltered <- filters.foldM(parsed.body) { (b, f) => f(b) }
+
           // Update the `body` variable in the `vars`, merge it with `templateVars`. Populate the templateBody with the combined `vars`. This is the new `body`.
           newVars = vars
             .deepMerge(parsed.vars)
             .deepMerge(Json.obj("body" -> Json.fromString(body)))
-          newBody <- populate(parsed.body, newVars)
+          newBody <- populate(tmlBodyFiltered, newVars)
 
           // Reiterate
           newTmlPath = parsed.nextTemplateName.map(resolveTemplate)
         } yield Left(TemplateLoopState(newBody, newVars, newTmlPath))
     }
+}
+
+object templateFilters {
+  type TemplateFilter = String => Ef[String]
+
+  lazy val filters: Map[String, TemplateFilter] = Map(
+    "post" -> postFilter)
+
+  val postFilter: TemplateFilter = tml =>
+    for {
+      proc <- att { sys.runtime.exec(Array("src/main/bash/postFilter.sh", tml)) }
+      res  <- att { IOUtils.toString(proc.getInputStream, settings.enc) }
+      _    <- asy { proc.waitFor() }
+    } yield res
 }
 
 object populate {
