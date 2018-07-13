@@ -1,0 +1,6 @@
+[submodule "filters/pandocfilters"]
+	path = filters/pandocfilters
+	url = https://github.com/anatoliykmetyuk/pandocfilters.git
+[submodule "filters/pandoc-include-code"]
+	path = filters/pandoc-include-code
+	url = https://github.com/anatoliykmetyuk/pandoc-include-code.git
