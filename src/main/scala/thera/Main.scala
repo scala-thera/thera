@@ -12,7 +12,7 @@ import io.circe._
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val input  = new File("site-src/posts/2017-03-10-matryoshka-intro.md")
+    val input  = new File("site-src/posts/2017-03-10-matryoshka-intro-test.md")
     val output = new File("_site/result.html")
     val data   = new File("site-src/data/data.yml")
     val assets = new File("site-src/assets")
