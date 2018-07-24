@@ -30,10 +30,15 @@ object Main {
       , fragmentResolver = name => new File(s"site-src/private-assets/css/${name}.css"))
       _   <- att { FileUtils.writeStringToFile(new File("_site/assets/all.css"), css, settings.enc) }
 
+      // Copy code directory
+      _ <- att { FileUtils.copyDirectory(new File("site-src/code"), new File("_site/code")) }
+
       // Process input post
       res <- templates(input, config)
       _   <- att { FileUtils.writeStringToFile(output, res, settings.enc) }
 
+      // Delete the code directory
+      _ <- att { FileUtils.deleteDirectory(new File("_site/code")) }
       // _ <- index(vars)
     } yield () }
   }

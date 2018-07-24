@@ -6,11 +6,7 @@ services:
     ports:
       - 8888:8888
     volumes:
-      - home:/root
+      - ./volumes/home:/root
       - .:/root/thera
     stdin_open: true
     tty: true
-
-volumes:
-  # pgdata:
-  home:

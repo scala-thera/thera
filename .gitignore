@@ -23,5 +23,6 @@ project/plugins/project/
 
 # Project-specific data
 /data/
+/volumes/
 /_site/
 /pandoc-exp/
