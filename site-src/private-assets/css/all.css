@@ -5,9 +5,11 @@ fragments:
   screen  : screen
   layout  : layout
   syntax  : syntax
+  pygments: pygments
 ---
 #{base}
 #{skeleton}
 #{screen}
 #{layout}
 #{syntax}
+#{pygments}

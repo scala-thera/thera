@@ -8,6 +8,7 @@ RUN apt-get install -y\
   libgraphviz-dev graphviz-dev pkg-config
 RUN pip install pandocfilters pygraphviz
 
+# ARG CACHE_DATE=not_a_date
 WORKDIR /pandoc-filters
 RUN git clone https://github.com/anatoliykmetyuk/pandocfilters.git
 RUN git clone https://github.com/anatoliykmetyuk/include-code.git
