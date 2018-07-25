@@ -1,6 +1,9 @@
 ---
-title: Introduction to Type classes Webinar
-keywords: typeclass,webinar,scala
+template: post
+filters: [post]
+variables:
+  title: Introduction to Type classes Webinar
+  keywords: [typeclass,webinar,scala]
 ---
 
 Hello,

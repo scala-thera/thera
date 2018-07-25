@@ -1,6 +1,9 @@
 ---
-title: Introductory Functional Programming Course&#58; Learning the Intuitive Way
-keywords: scala,cats,functional programming,course,typelevel
+template: post
+filters: [post]
+variables:
+  title: Introductory Functional Programming Course&#58; Learning the Intuitive Way
+  keywords: [scala,cats,functional programming,course,typelevel]
 ---
 
 

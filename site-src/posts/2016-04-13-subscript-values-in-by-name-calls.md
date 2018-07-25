@@ -1,8 +1,8 @@
 ---
-layout: post
-title: Thread safety of SubScript values (and other scoped references)
-categories:
-- blog
+template: post
+filters: [post]
+variables:
+  title: Thread safety of SubScript values (and other scoped references)
 ---
 
 In [SubScript](https://github.com/scala-subscript/subscript), we have a possibility to use `val`s and `var`s in scripts. They are basically containers for data, just like Scala's `val`s and `var`s, but they store their data in SubScript VM data structures.

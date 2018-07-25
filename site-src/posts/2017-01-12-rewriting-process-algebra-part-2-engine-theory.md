@@ -1,10 +1,10 @@
 ---
-layout: post
-title: Rewriting Process Algebra, Part 2&#58; Engine Theory
-categories:
-- blog
-description: A rewriting-based process algebra implementation in Scala.
-keywords: process algebra,scala,subscript,free object,functional programming,algebra of communicating processes,acp,category theory,concurrent programming,concurrency,reactive programming
+template: post
+filters: [post]
+variables:
+  title: Rewriting Process Algebra, Part 2&#58; Engine Theory
+  description: A rewriting-based process algebra implementation in Scala.
+  keywords: [process algebra,scala,subscript,free object,functional programming,algebra of communicating processes,acp,category theory,concurrent programming,concurrency,reactive programming]
 ---
 This is a second part of a progress report on my attempt to model a process algebra as an expression rewriting machine. This part covers the theoretical foundations of the two implementations (engines) of SubScript: the [standard one](https://github.com/scala-subscript/subscript), and [FreeACP](https://github.com/anatoliykmetyuk/free-acp), the one I am building. The other two parts:
 

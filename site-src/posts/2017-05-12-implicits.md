@@ -1,6 +1,9 @@
 ---
-title: Implicits mechanism in Scala
-keywords: implicit,scala
+template: post
+filters: [post]
+variables:
+  title: Implicits mechanism in Scala
+  keywords: [implicit,scala]
 ---
 
 # Motivation

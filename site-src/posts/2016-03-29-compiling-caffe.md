@@ -1,10 +1,10 @@
 ---
-layout: post
-title: Compiling Caffe under Mac OS X with Anaconda dependencies
-categories:
-- blog
-description: A guide on how to get the Caffe framwork compiled.
-keywords: caffe,machine learning
+template: post
+filters: [post]
+variables:
+  title: Compiling Caffe under Mac OS X with Anaconda dependencies
+  description: A guide on how to get the Caffe framwork compiled.
+  keywords: [caffe,machine learning]
 ---
 In this post, I will describe how to install the [Caffe](http://caffe.berkeleyvision.org/) neural network framework on Mac OS X as a Python library. Caffe is a work in progress, so its installation is not that trivial.
 

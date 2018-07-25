@@ -1,8 +1,8 @@
 ---
-layout: post
-title: How to split monolithic commit history in git
-categories:
-- blog
+template: post
+filters: [post]
+variables:
+  title: How to split monolithic commit history in git
 ---
 # Problem
 Suppose you have a fork of some GitHub repository. You have made some changes in it that fix multiple bugs and add some new features. Now you want to send your work to the main repository.

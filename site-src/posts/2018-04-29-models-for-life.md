@@ -1,5 +1,8 @@
 ---
-title: Models for Life
+template: post
+filters: [post]
+variables:
+  title: Models for Life
 ---
 
 # Planning for the Future
