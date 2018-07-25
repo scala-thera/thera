@@ -20,8 +20,7 @@ object templates {
   def resolveFragment(value: String): File =
     new File(s"site-src/fragments/$value.html")
 
-  /** Get template' templateBody, templateVars and nextTemplate */
-  def parseTemplate(raw: String, globalVars: Json, fragmentResolver: String => File): Ef[Template] = {
+  def parseConfig(raw: String): Ef[(Json, List[String])] = {
     // Parse header, as an Option
     val rawLines: List[String] = raw.split("\n").toList
     val (header: Option[List[String]], body: List[String]) =
@@ -32,7 +31,13 @@ object templates {
     // Drop the first line
     val configRaw: Option[String] =
       header.map(lines => lines.tail.mkString("\n"))
-    
+
+    val configJson = exn { configRaw.map(yaml.parser.parse).getOrElse(Either.right { Json.obj() } ) }
+    configJson.map { cfg => (cfg, body) }
+  }
+
+  /** Get template' templateBody, templateVars and nextTemplate */
+  def parseTemplate(raw: String, globalVars: Json, fragmentResolver: String => File): Ef[Template] = {    
     def getConfigFieldOpt[A: Decoder](config: Json, name: String): Ef[Option[A]] =
       exn { config.hcursor.get[Option[A]](name) }
 
@@ -41,7 +46,8 @@ object templates {
 
     for {
       // Read the config and its significant fields
-      config           <- exn { configRaw.map(yaml.parser.parse).getOrElse(Either.right { Json.obj() } ) }
+      configAndBody    <- parseConfig(raw)
+      (config, body)    = configAndBody
       nextTemplateName <- getConfigFieldOpt[String](config, "template")
       localVars        <- getConfigFieldWithDefault[Json](config, "variables", Json.obj())
       fragments        <- getConfigFieldWithDefault[Json](config, "fragments", Json.obj())
