@@ -62,7 +62,7 @@ object Main {
 
   def index(posts: List[Post], globalConfig: Json): Ef[Unit] =
     for {
-      postsJsonArr <- posts.traverse(_.asJson)
+      postsJsonArr <- posts.sortBy(_.date).traverse(_.asJson)
       config <- att { globalConfig.deepMerge( Json.obj(
                   "posts" -> Json.arr(postsJsonArr: _*)) ) }
       res    <- templates(new File(srcRoot, "index.html"), config)
