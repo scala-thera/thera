@@ -110,7 +110,15 @@ object templateFilters {
   }
 
   val postFilter: TemplateFilter = tml => {
-    val proc = sys.runtime.exec("../src/main/bash/postFilter.sh", null, new File("_site"))
+    val proc = sys.runtime.exec("""
+      |pandoc \
+      |  --toc \
+      |  --webtex \
+      |  --template=../site-src/templates/pandoc-post.html \
+      |  --filter /pandoc-filters/pandocfilters/examples/graphviz.py \
+      |  --filter /pandoc-filters/pandocfilters/examples/plantuml.py \
+      |  --filter /pandoc-filters/include-code/include-code.py \
+    """.stripMargin, null, new File("_site"))
     val is   = proc.getInputStream
     val os   = proc.getOutputStream
     val es   = proc.getErrorStream

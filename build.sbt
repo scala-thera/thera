@@ -12,7 +12,7 @@ val CommonsIO = "2.6"
 lazy val commonSettings = Seq(
   name         := "thera"
 , organization := "com.functortech"
-, version      := "0.0.1"
+, version      := "0.0.1-SNAPSHOT"
 , scalaVersion := ScalaVer
 
 // Publish to Sonatype
