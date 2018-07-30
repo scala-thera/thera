@@ -25,6 +25,7 @@ to name your image and use it instead of the standard one."
     IMAGE_NAME=$DEFAULT_IMAGE_NAME
   fi
 
+  echo "Starting $IMAGE_NAME"
   docker run -td \
     -v $SELF_DIR/_volumes/home:/root \
     -v $SELF_DIR:/root/thera \
@@ -32,6 +33,7 @@ to name your image and use it instead of the standard one."
     -p 8888:8888 \
     --name thera \
     --rm \
+    --workdir /root/thera \
     $IMAGE_NAME
 }
 
