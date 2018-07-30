@@ -8,6 +8,7 @@ val CirceCore = "0.10.0-M1"
 val CirceYaml = "0.8.0"
 
 val CommonsIO = "2.6"
+val BetterFiles = "3.6.0"
 
 lazy val commonSettings = Seq(
   name         := "thera"
@@ -59,6 +60,7 @@ lazy val commonSettings = Seq(
 
   , "commons-io" % "commons-io" % CommonsIO
 
+  , "com.github.pathikrit" %% "better-files" % BetterFiles
   )
 
 , addCompilerPlugin("org.spire-math" %% "kind-projector" % KindProjector)
