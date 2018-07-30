@@ -3,6 +3,8 @@
 HELP="Usage: thera <command>, where <command> is one of:
   start - Start Thera
   stop  - Stop Thera
+  restart - Restart Thera
+  build - Run build.sc script on Thera under Ammonite
   bash  - open bash console at Thera's Docker image"
 
 SELF_DIR=`pwd`
@@ -45,19 +47,26 @@ function run_on_thera {
   docker exec -ti thera $@
 }
 
+function build_thera {
+  run_on_thera amm build.sc
+}
+
+function restart_thera {
+  stop_thera; start_thera
+}
+
 if [ -a $COMMAND_OVERRIDES ]; then
-  echo "Loading functions from $COMMAND_OVERRIDES"
+  echo "Loading Thera overrides from $COMMAND_OVERRIDES"
   . $COMMAND_OVERRIDES
 fi
 
 case $1 in
     start) start_thera;;
      stop) stop_thera;;
-  restart) stop_thera; start_thera;;
+  restart) restart_thera;;
+    build) build_thera;;
 
-  build) run_on_thera amm build.sc;;
-   bash) run_on_thera bash;;
+  '' | help) echo -e "$HELP";;
 
-    '') echo -e "$HELP";;
-     *) echo -e "Unknown command: $1\n$HELP";;
+  *) run_on_thera $@;;
 esac
