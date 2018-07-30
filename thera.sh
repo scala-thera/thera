@@ -6,7 +6,7 @@ SELF_DIR=`pwd`
 
 function start_thera {
   docker run -td \
-    -v $SELF_DIR/volumes/home:/root \
+    -v $SELF_DIR/_volumes/home:/root \
     -v $SELF_DIR:/root/thera \
     -v /Users/anatolii/.ivy2:/root/.ivy2 \
     -p 8888:8888 \
