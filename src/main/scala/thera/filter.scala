@@ -18,7 +18,7 @@ object filter {
    * the template's contents to the output stream and consumes its
    * input stream as the transformed template.
    */ 
-  def cmdFilter(cmd: String, executeFrom: File = file"_site", encoding: String = "utf8"): TemplateFilter = tml => {
+  def command(cmd: String, executeFrom: File = file"_site", encoding: String = "utf8"): TemplateFilter = tml => {
     val proc = sys.runtime.exec(cmd, null, executeFrom.toJava)
     val is   = proc.getInputStream
     val os   = proc.getOutputStream

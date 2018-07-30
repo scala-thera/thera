@@ -63,7 +63,7 @@ object template {
           fragPopulated <- apply(fragSource, vars)
           varsUpdated    = vars.deepMerge(Json.obj(k -> Json.fromString(fragPopulated)))
         } yield varsUpdated }
-    } yield Template(body.mkString("\n"), varsWithFrags, nextTemplateName, filters)    
+    } yield Template(body, varsWithFrags, nextTemplateName, filters)    
   }
 
   /**
