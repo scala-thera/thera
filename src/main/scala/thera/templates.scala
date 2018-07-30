@@ -14,11 +14,11 @@ case class TemplateLoopState(body: String, vars: Json, nextTemplatePath: Option[
 case class Template(body: String, vars: Json, nextTemplateName: Option[String], filters: List[String])
 
 object templates {
-  def resolveTemplate(name: String): File =
-     new File(s"src/templates/$name.html")
+  def resolveTemplate(name: String, src: String = "src"): File =
+     new File(s"$src/templates/$name.html")
 
-  def resolveFragment(value: String): File =
-    new File(s"src/fragments/$value.html")
+  def resolveFragment(value: String, src: String = "src"): File =
+    new File(s"$src/fragments/$value.html")
 
   def parseConfig(raw: String): Ef[(Json, List[String])] = {
     // Parse header, as an Option
@@ -68,7 +68,8 @@ object templates {
   def apply(
         tmlPath         : File
       , initialVars     : Json = Json.obj()
-      , fragmentResolver: String => File = resolveFragment): Ef[String] =
+      , fragmentResolver: String => File = resolveFragment(_, "src")
+      , tmlFilters      : String => templateFilters.TemplateFilter = Map()): Ef[String] =
     Monad[Ef].tailRecM[TemplateLoopState, String](TemplateLoopState("", initialVars, Some(tmlPath)))
     { case TemplateLoopState(body, vars, None                  ) =>  // Terminal case: no next template
         // att { Either.right { raw"#\{($varNameRegex)\}".r.replaceAllIn(body, _ => "") } }
@@ -80,7 +81,7 @@ object templates {
           parsed <- parseTemplate(tmlRaw, vars, fragmentResolver)
 
           // Apply appropriate for this type filters
-          filters = parsed.filters.map(templateFilters.filters)
+          filters = parsed.filters.map(tmlFilters)
           tmlBodyFiltered <- filters.foldM(parsed.body) { (b, f) => f(b) }
 
           // Update the `body` variable in the `vars`, merge it with `templateVars`. Populate the templateBody with the combined `vars`. This is the new `body`.
@@ -90,7 +91,7 @@ object templates {
           newBody <- populate(tmlBodyFiltered, newVars)
 
           // Reiterate
-          newTmlPath = parsed.nextTemplateName.map(resolveTemplate)
+          newTmlPath = parsed.nextTemplateName.map(resolveTemplate(_))
         } yield Left(TemplateLoopState(newBody, newVars, newTmlPath))
     }
 }
@@ -98,27 +99,8 @@ object templates {
 object templateFilters {
   type TemplateFilter = String => Ef[String]
 
-  lazy val filters: Map[String, TemplateFilter] = Map(
-    "post" -> postFilter)
-
-  def main(args: Array[String]): Unit = {
-    val proc = sys.runtime.exec("../filters/postFilter.sh", null, new File("_site"))
-    IOUtils.write("foo", proc.getOutputStream, settings.enc)
-    proc.getOutputStream.close()
-    val res = IOUtils.toString(proc.getInputStream, settings.enc)
-    println(res)
-  }
-
-  val postFilter: TemplateFilter = tml => {
-    val proc = sys.runtime.exec("""
-      |pandoc
-      |  --toc
-      |  --webtex
-      |  --template=../src/templates/pandoc-post.html
-      |  --filter /pandoc-filters/pandocfilters/examples/graphviz.py
-      |  --filter /pandoc-filters/pandocfilters/examples/plantuml.py
-      |  --filter /pandoc-filters/include-code/include-code.py
-    """.stripMargin, null, new File("_site"))
+  def cmdFilter(cmd: String, executeFrom: File = new File("_site")): TemplateFilter = tml => {
+    val proc = sys.runtime.exec(cmd, null, executeFrom)
     val is   = proc.getInputStream
     val os   = proc.getOutputStream
     val es   = proc.getErrorStream
@@ -137,6 +119,12 @@ object templateFilters {
       _   <- att { closeAll() }
     } yield res).leftMap(e => { closeAll(); e })
   }
+
+  def pandocFilters(paths: List[String]): List[String] =
+    paths.map { p => s"--filter $p" }
+
+  def pandocWithOpts(opts: List[String] = Nil) =
+    "pandoc " + opts.mkString(" ")
 }
 
 object populate {
