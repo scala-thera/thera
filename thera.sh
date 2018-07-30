@@ -5,7 +5,8 @@ HELP="Usage: thera <command>, where <command> is one of:
   stop  - Stop Thera
   restart - Restart Thera
   build - Run build.sc script on Thera under Ammonite
-  bash  - open bash console at Thera's Docker image"
+  help  - Show this message
+  any other command - run that command on Thera Docker container (provided the container is running)."
 
 SELF_DIR=`pwd`
 COMMAND_OVERRIDES="$SELF_DIR/thera.sh"

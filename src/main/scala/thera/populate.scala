@@ -58,7 +58,6 @@ object populate {
           body     = tml.substring(mtch.end, endMtch.start)
           bodyRes <- cmdProcessor(body, vars, cmdArgs)
 
-          _ = println(s"Body of $cmdName: $bodyRes")
           cmdRes = tml.substring(0, mtch.start) + bodyRes + tml.substring(endMtch.end)
         } yield Left(cmdRes)
       }
