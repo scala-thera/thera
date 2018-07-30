@@ -15,10 +15,10 @@ case class Template(body: String, vars: Json, nextTemplateName: Option[String], 
 
 object templates {
   def resolveTemplate(name: String): File =
-     new File(s"site-src/templates/$name.html")
+     new File(s"src/templates/$name.html")
 
   def resolveFragment(value: String): File =
-    new File(s"site-src/fragments/$value.html")
+    new File(s"src/fragments/$value.html")
 
   def parseConfig(raw: String): Ef[(Json, List[String])] = {
     // Parse header, as an Option
@@ -114,7 +114,7 @@ object templateFilters {
       |pandoc
       |  --toc
       |  --webtex
-      |  --template=../site-src/templates/pandoc-post.html
+      |  --template=../src/templates/pandoc-post.html
       |  --filter /pandoc-filters/pandocfilters/examples/graphviz.py
       |  --filter /pandoc-filters/pandocfilters/examples/plantuml.py
       |  --filter /pandoc-filters/include-code/include-code.py

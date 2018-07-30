@@ -26,7 +26,7 @@ function run_on_thera {
 case $1 in
     start) start_thera;;
      stop) stop_thera;;
-  restart) stop_thera && start_thera;;
+  restart) stop_thera; start_thera;;
 
   build) run_on_thera amm build.sc;;
    bash) run_on_thera bash;;
