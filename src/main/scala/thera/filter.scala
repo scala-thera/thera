@@ -18,7 +18,7 @@ object filter {
    * the template's contents to the output stream and consumes its
    * input stream as the transformed template.
    */ 
-  def cmdFilter(cmd: String, executeFrom: File = file"_site"): TemplateFilter = tml => {
+  def cmdFilter(cmd: String, executeFrom: File = file"_site", encoding: String = "utf8"): TemplateFilter = tml => {
     val proc = sys.runtime.exec(cmd, null, executeFrom.toJava)
     val is   = proc.getInputStream
     val os   = proc.getOutputStream
@@ -31,10 +31,10 @@ object filter {
     }
 
     (for {
-      _   <- att { IOUtils.write(tml, os, settings.enc) }
+      _   <- att { IOUtils.write(tml, os, encoding) }
       _   <- att { os.close() }
-      res <- att { IOUtils.toString(is, settings.enc)}
-      _   <- att { println(IOUtils.toString(es, settings.enc)) }
+      res <- att { IOUtils.toString(is, encoding)}
+      _   <- att { println(IOUtils.toString(es, encoding)) }
       _   <- att { closeAll() }
     } yield res).leftMap(e => { closeAll(); e })
   }

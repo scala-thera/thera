@@ -16,7 +16,7 @@ object template {
    * Parse the YAML between the "---" lines at the start
    * of the file.
    */
-  def parseConfig(lines: Seq[String]): Ef[Json] =
+  def parseConfig(lines: Traversable[String]): Ef[Json] =
     if (lines.headOption.contains("---")) exn { yaml.parser.parse {
       lines.tail.takeWhile(_ != "---").mkString("\n") }}
     else pur { Json.obj() }
@@ -25,7 +25,7 @@ object template {
    * If the file has a YAML header, drop it and return
    * the remainder. Otherwise, return the entire file unchanged.
    */
-  def parseBody(lines: Seq[String]): String =
+  def parseBody(lines: Traversable[String]): String =
     (if (lines.headOption.contains("---"))
       lines.tail.dropWhile(_ != "---").drop(1)
     else lines).mkString("\n")
@@ -34,7 +34,7 @@ object template {
    * Get the template's templateBody, templateVars and nextTemplate.
    * Resolve fragments and incorporate them to variables in process.
    */
-  def parseTemplate(raw: String, globalVars: Json, fragmentResolver: String => File): Ef[Template] = {    
+  def parseTemplate(lines: Traversable[String], globalVars: Json, fragmentResolver: String => File): Ef[Template] = {    
     def getConfigFieldOpt[A: Decoder](config: Json, name: String): Ef[Option[A]] =
       exn { config.hcursor.get[Option[A]](name) }
 
@@ -43,8 +43,8 @@ object template {
 
     for {
       // Read the config and its significant fields
-      config <- parseConfig(raw)
-      body    = parseBody  (raw)
+      config <- parseConfig(lines)
+      body    = parseBody  (lines)
 
       // Process the config fields
       nextTemplateName <- getConfigFieldOpt[String](config, "template")
@@ -81,11 +81,11 @@ object template {
         populate(body, vars).map(Either.right(_))
 
       case TemplateLoopState(body, vars, Some(nextTemplatePath)) =>
-        val tmlRaw = nextTemplatePath.contentAsString
+        val tmlRaw = nextTemplatePath.lines
         for {
           // Parse the template of the current file. Apply its filters to this template.
           parsed          <- parseTemplate(tmlRaw, vars, fragmentResolver)
-          filters          = parsed.filters.map(tmlFilters)
+          filters          = parsed.filters.map(templateFilters)
           tmlBodyFiltered <- filters.foldM(parsed.body) { (b, f) => f(b) }
 
           // Merge template's variables and populate the template with the current body.
@@ -95,7 +95,7 @@ object template {
           newBody <- populate(tmlBodyFiltered, newVars)  // Populate the templateBody with the combined `vars`. The result is the new `body`.
 
           // Reiterate
-          newTmlPath = parsed.nextTemplateName.map(resolveTemplate(_))
+          newTmlPath = parsed.nextTemplateName.map(templateResolver)
         } yield Left(TemplateLoopState(newBody, newVars, newTmlPath))
     }
 }
