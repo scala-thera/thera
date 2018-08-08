@@ -6,7 +6,21 @@ Thera is a static website generator for Scala, similar to Jekyll for Ruby or Hak
 
 ![Demo](./demo.svg)
 
-`build.sc`:
+`index.html`
+```html
+---
+template: html-template
+filters: [currentTimeFilter]
+variables:
+  title: This stuff works!
+  one: "1"
+  two: "2"
+fragments:
+  three: three-frag
+---
+I have numbers #{one} and #{two}. If I add them, here is what I get: #{three}.
+```
+`build.sc`
 ```scala
 import $ivy.`com.github.pathikrit::better-files:3.6.0`
 import $ivy.`com.functortech::thera:0.0.2`
@@ -36,21 +50,6 @@ processed match {
 
   case Left (error ) => println(s"Error happened: $error")
 }
-```
-
-`index.html`:
-```html
----
-template: html-template
-filters: [currentTimeFilter]
-variables:
-  title: This stuff works!
-  one: "1"
-  two: "2"
-fragments:
-  three: three-frag
----
-I have numbers #{one} and #{two}. If I add them, here is what I get: #{three}.
 ```
 
 ## Installation
