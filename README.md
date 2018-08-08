@@ -1,6 +1,6 @@
 Thera is a static website generator for Scala, similar to [Jekyll] for Ruby or Hakyll for Haskell.
 
-<script src="https://asciinema.org/a/O94xzncXnETSsZ84lPOvC0iQJ.js" id="asciicast-O94xzncXnETSsZ84lPOvC0iQJ" async></script>
+![Demo](./demo.svg)
 
 # Installation
 1. Make sure that [Docker](https://www.docker.com/get-started/) is installed. If it is not, follow the official documentation to do so.
