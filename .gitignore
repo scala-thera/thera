@@ -26,3 +26,4 @@ project/plugins/project/
 /volumes/
 /_site/
 /pandoc-exp/
+/example/_*/
