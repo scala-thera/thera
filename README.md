@@ -70,7 +70,7 @@ open http://localhost:8888  # open the site in browser
 thera stop  # stop the Docker container
 ```
 
-For a more advanced example, see [sources](https://github.com/anatoliykmetyuk/anatoliykmetyuk.github.io) of [my blog](https://akmetiuk.com).
+For a more advanced example, see [sources](https://github.com/anatoliykmetyuk/anatoliykmetyuk.github.io/tree/thera) of [my blog](https://akmetiuk.com).
 
 ## Usage
 Thera consists of two components: the command-line application and the Scala library. The CLI provides a convenient way to build sites with minimal setup. The library provides template processing capabilities.
