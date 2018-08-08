@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>#{title}</title>
+</head>
+<body>
+#{body}
+<div>
+  <h1>Our users</h1>
+  #{for our_users u}
+    <p>
+      Name : #{u.name}
+      Email: #{u.email}
+    </p>
+  #{end for}
+</div>
+</body>
+</html>

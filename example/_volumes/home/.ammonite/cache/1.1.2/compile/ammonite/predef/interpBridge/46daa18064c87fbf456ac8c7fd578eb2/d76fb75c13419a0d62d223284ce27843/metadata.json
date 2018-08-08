@@ -1,0 +1,22 @@
+[
+    {
+        "code": "46daa18064c87fbf456ac8c7fd578eb2",
+        "env": "d76fb75c13419a0d62d223284ce27843"
+    },
+    [
+        {
+            "fromName": "value",
+            "toName": "interp",
+            "prefix": [
+                "_root_",
+                "ammonite",
+                "interp",
+                "InterpBridge"
+            ],
+            "importType": {
+                "$type": "ammonite.util.ImportData.ImportType",
+                "name": "Term"
+            }
+        }
+    ]
+]

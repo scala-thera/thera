@@ -1,11 +1,21 @@
-Thera is a static website generator for Scala, similar to [Jekyll](TODO) for Ruby or [Hakyll](TODO) for Haskell.
+Thera is a static website generator for Scala, similar to [Jekyll] for Ruby or Hakyll for Haskell.
 
-TODO terminal session video
+[![asciicast](https://asciinema.org/a/O94xzncXnETSsZ84lPOvC0iQJ.png)](https://asciinema.org/a/O94xzncXnETSsZ84lPOvC0iQJ)
 
 # Installation
-1. Make sure that [Docker](TODO) is installed. If it is not, follow the official documentation to do so.
+1. Make sure that [Docker](https://www.docker.com/get-started/) is installed. If it is not, follow the official documentation to do so.
 2. Download Thera executable: `sudo curl -L https://raw.githubusercontent.com/anatoliykmetyuk/thera/master/thera.sh > /usr/local/bin/thera && chmod +x /usr/local/bin/thera`.
 3. Run `thera` to ensure a help message gets output.
+
+# Example
+```bash
+git clone https://github.com/anatoliykmetyuk/thera.git
+cd thera/example
+thera start  # start Thera Docker container
+thera build  # run the build script
+open http://localhost:8888  # open the site in browser
+thera stop  # stop the Docker container
+```
 
 # Usage
 Thera consists of two components: the command-line application and the Scala library. The CLI provides a convenient way to build sites with minimal setup. The library provides template processing capabilities.

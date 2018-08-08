@@ -1,0 +1,438 @@
+[
+    {
+        "code": "a30d5b8018cf0e22fd157ddc856bc871",
+        "env": "5bb981c7d564546530f33cc53745ba1b"
+    },
+    [
+        {
+            "id": {
+                "wrapperPath": "ammonite.predef.DefaultPredef",
+                "tag": {
+                    "code": "eb7b4191ab07afded70746dc9a53e8ac",
+                    "env": "5bb981c7d564546530f33cc53745ba1b"
+                }
+            },
+            "leadingSpaces": "\n",
+            "hookInfo": {
+                "imports": [
+                    
+                ],
+                "stmts": [
+                    "import ammonite.ops.{\n  PipeableImplicit,\n  FilterMapExtImplicit,\n  FilterMapArraysImplicit,\n  FilterMapIteratorsImplicit,\n  FilterMapGeneratorsImplicit,\n  SeqFactoryFunc,\n  RegexContextMaker,\n  Callable1Implicit\n}\n",
+                    "import ammonite.runtime.tools._\n",
+                    "import ammonite.repl.tools._\n",
+                    "import ammonite.runtime.tools.IvyConstructor.{ArtifactIdExt, GroupIdExt}\n",
+                    "import ammonite.interp.InterpBridge.value.exit\n\n",
+                    "import ammonite.main.Router.{doc, main}\n",
+                    "import ammonite.main.Scripts.pathScoptRead\n"
+                ],
+                "trees": [
+                    
+                ]
+            },
+            "finalImports": [
+                {
+                    "fromName": "exit",
+                    "toName": "exit",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "interp",
+                        "InterpBridge",
+                        "value"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "doc",
+                    "toName": "doc",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "main",
+                        "Router"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Type"
+                    }
+                },
+                {
+                    "fromName": "main",
+                    "toName": "main",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "main",
+                        "Router"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Type"
+                    }
+                },
+                {
+                    "fromName": "pathScoptRead",
+                    "toName": "pathScoptRead",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "main",
+                        "Scripts"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "SeqFactoryFunc",
+                    "toName": "SeqFactoryFunc",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "RegexContextMaker",
+                    "toName": "RegexContextMaker",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "FilterMapArraysImplicit",
+                    "toName": "FilterMapArraysImplicit",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "FilterMapGeneratorsImplicit",
+                    "toName": "FilterMapGeneratorsImplicit",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "FilterMapIteratorsImplicit",
+                    "toName": "FilterMapIteratorsImplicit",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "PipeableImplicit",
+                    "toName": "PipeableImplicit",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "Callable1Implicit",
+                    "toName": "Callable1Implicit",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "FilterMapExtImplicit",
+                    "toName": "FilterMapExtImplicit",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "ops"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "Desugared",
+                    "toName": "Desugared",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "repl",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Type"
+                    }
+                },
+                {
+                    "fromName": "SourceRuntime",
+                    "toName": "SourceRuntime",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "repl",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "Compat",
+                    "toName": "Compat",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "repl",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "desugar",
+                    "toName": "desugar",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "repl",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "HighlightJava",
+                    "toName": "HighlightJava",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "repl",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "Location",
+                    "toName": "Location",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "repl",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Type"
+                    }
+                },
+                {
+                    "fromName": "source",
+                    "toName": "source",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "repl",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "grep",
+                    "toName": "grep",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "tail",
+                    "toName": "tail",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "TermType"
+                    }
+                },
+                {
+                    "fromName": "GrepResult",
+                    "toName": "GrepResult",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "TermType"
+                    }
+                },
+                {
+                    "fromName": "IvyConstructor",
+                    "toName": "IvyConstructor",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "TermType"
+                    }
+                },
+                {
+                    "fromName": "IvyThing",
+                    "toName": "IvyThing",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "Grepper",
+                    "toName": "Grepper",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "TermType"
+                    }
+                },
+                {
+                    "fromName": "browse",
+                    "toName": "browse",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "time",
+                    "toName": "time",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Term"
+                    }
+                },
+                {
+                    "fromName": "GroupIdExt",
+                    "toName": "GroupIdExt",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools",
+                        "IvyConstructor"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Type"
+                    }
+                },
+                {
+                    "fromName": "ArtifactIdExt",
+                    "toName": "ArtifactIdExt",
+                    "prefix": [
+                        "_root_",
+                        "ammonite",
+                        "runtime",
+                        "tools",
+                        "IvyConstructor"
+                    ],
+                    "importType": {
+                        "$type": "ammonite.util.ImportData.ImportType",
+                        "name": "Type"
+                    }
+                }
+            ]
+        }
+    ]
+]
