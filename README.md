@@ -6,8 +6,9 @@ Thera is a static website generator for Scala, similar to Jekyll for Ruby or Hak
 
 ![Demo](./demo.svg)
 
-`index.html`
-```html
+Construct your templates in terms of variables, filters, fragments and templates.
+
+```yaml
 ---
 template: html-template
 filters: [currentTimeFilter]
@@ -20,7 +21,9 @@ fragments:
 ---
 I have numbers #{one} and #{two}. If I add them, here is what I get: #{three}.
 ```
-`build.sc`
+
+Describe how a website should be built in Scala.
+
 ```scala
 import $ivy.`com.github.pathikrit::better-files:3.6.0`
 import $ivy.`com.functortech::thera:0.0.2`
@@ -66,6 +69,8 @@ thera build  # run the build script
 open http://localhost:8888  # open the site in browser
 thera stop  # stop the Docker container
 ```
+
+For a more advanced example, see [sources](https://github.com/anatoliykmetyuk/anatoliykmetyuk.github.io) of [my blog](https://akmetiuk.com).
 
 ## Usage
 Thera consists of two components: the command-line application and the Scala library. The CLI provides a convenient way to build sites with minimal setup. The library provides template processing capabilities.
