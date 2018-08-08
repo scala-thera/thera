@@ -2,9 +2,40 @@
 
 ![Latest version](https://index.scala-lang.org/anatoliykmetyuk/thera/thera/latest.svg?color=purple) [![Build Status](https://travis-ci.org/anatoliykmetyuk/thera.svg?branch=master)](https://travis-ci.org/anatoliykmetyuk/thera) [![Javadocs](https://www.javadoc.io/badge/com.functortech/thera_2.12.svg)](https://www.javadoc.io/doc/com.functortech/thera_2.12)
 
-Thera is a static website generator for Scala, similar to Jekyll for Ruby or Hakyll for Haskell.
+Thera is a static website generator for Scala, similar to Jekyll for Ruby or Hakyll for Haskell. With Thera, you can specify your build scripts in Scala with [Ammonite](http://ammonite.io/), leverage any Java/Scala library you like, with minimal setup.
 
 ![Demo](./demo.svg)
+
+```scala
+import $ivy.`com.github.pathikrit::better-files:3.6.0`
+import $ivy.`com.functortech::thera:0.0.2`
+import $ivy.`io.circe::circe-core:0.10.0-M1`
+import $ivy.`io.circe::circe-generic:0.10.0-M1`
+
+import better.files._, File._
+import io.circe._, io.circe.generic.auto._, io.circe.syntax._
+
+val processed: Either[String, String] = thera.template(
+  tmlPath = file"index.html"
+, fragmentResolver = name => file"${name}.html"
+, templateResolver = name => file"${name}.html"
+, templateFilters  = Map(
+  "currentTimeFilter" -> { input =>
+    Right(new java.util.Date() + " " + input) })
+, initialVars = Map(
+    "our_users" -> List(
+      Map("name" -> "John", "email" -> "john@functortech.com")
+    , Map("name" -> "Ann" , "email" -> "ann@functortech.com" )
+    )).asJson)
+
+processed match {
+  case Right(result) =>
+    file"_site".createDirectoryIfNotExists()
+    file"_site/index.html" write result
+
+  case Left (error ) => println(s"Error happened: $error")
+}
+```
 
 ## Installation
 1. Make sure that [Docker](https://www.docker.com/get-started/) is installed. If it is not, follow the official documentation to do so.
