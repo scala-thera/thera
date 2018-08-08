@@ -1,5 +1,5 @@
 # Thera
-![Latest version](https://index.scala-lang.org/anatoliykmetyuk/thera/thera/latest.svg?color=purple) [![Build Status](https://travis-ci.org/anatoliykmetyuk/thera.svg?branch=master)](https://travis-ci.org/anatoliykmetyuk/thera)
+![Latest version](https://index.scala-lang.org/anatoliykmetyuk/thera/thera/latest.svg?color=purple) [![Build Status](https://travis-ci.org/anatoliykmetyuk/thera.svg?branch=master)](https://travis-ci.org/anatoliykmetyuk/thera) [![Join the chat at https://gitter.im/functortech-thera/Lobby](https://badges.gitter.im/functortech-thera/Lobby.svg)](https://gitter.im/functortech-thera/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Thera is a static website generator for Scala, similar to [Jekyll] for Ruby or Hakyll for Haskell.
 
