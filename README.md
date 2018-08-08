@@ -6,7 +6,7 @@ Thera is a static website generator for Scala, similar to Jekyll for Ruby or Hak
 
 ![Demo](./demo.svg)
 
-Construct your templates in terms of variables, filters, fragments and templates.
+Describe your site in terms of variables, filters, fragments and templates.
 
 ```yaml
 ---
