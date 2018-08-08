@@ -1,3 +1,4 @@
+[![Latest version](https://index.scala-lang.org/anatoliykmetyuk/thera/thera/latest.svg?color=orange)]
 Thera is a static website generator for Scala, similar to [Jekyll] for Ruby or Hakyll for Haskell.
 
 ![Demo](./demo.svg)
