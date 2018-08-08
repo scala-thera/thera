@@ -1,15 +1,16 @@
+# Thera
 ![Latest version](https://index.scala-lang.org/anatoliykmetyuk/thera/thera/latest.svg?color=orange)
 
 Thera is a static website generator for Scala, similar to [Jekyll] for Ruby or Hakyll for Haskell.
 
 ![Demo](./demo.svg)
 
-# Installation
+## Installation
 1. Make sure that [Docker](https://www.docker.com/get-started/) is installed. If it is not, follow the official documentation to do so.
 2. Download Thera executable: `sudo curl -L https://raw.githubusercontent.com/anatoliykmetyuk/thera/master/thera.sh > /usr/local/bin/thera && chmod +x /usr/local/bin/thera`.
 3. Run `thera` to ensure a help message gets output.
 
-# Example
+## Example
 ```bash
 git clone https://github.com/anatoliykmetyuk/thera.git
 cd thera/example
@@ -19,10 +20,10 @@ open http://localhost:8888  # open the site in browser
 thera stop  # stop the Docker container
 ```
 
-# Usage
+## Usage
 Thera consists of two components: the command-line application and the Scala library. The CLI provides a convenient way to build sites with minimal setup. The library provides template processing capabilities.
 
-## CLI
+### CLI
 ```bash
 mkdir thera-test; cd thera-test  # create the base directory for your blog
 echo "It works!" > index.html  # create a file we are going to process
@@ -36,7 +37,7 @@ thera build  # run the build script
 open http://localhost:8888  # open the site in browser
 ```
 
-## Library
+### Library
 The main functionality of the library is in the following method, under `thera.template` object:
 
 ```scala
@@ -49,7 +50,7 @@ def apply(tmlPath: File, initialVars: Json = Json.obj(), templateResolver: (Stri
 `fragmentResolver` specifies how to resolve a fragment name to a file.
 `templateFilters` specifies how to resolve filters you are using in a template.
 
-## Template Format
+### Template Format
 Here is an example file to be run through the template engine:
 
 ```
