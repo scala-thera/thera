@@ -13,7 +13,7 @@ val BetterFiles = "3.6.0"
 lazy val commonSettings = Seq(
   name         := "thera"
 , organization := "com.functortech"
-, version      := "0.0.3-SNAPSHOT"
+, version      := "0.0.3"
 , scalaVersion := ScalaVer
 
 // Publish to Sonatype
