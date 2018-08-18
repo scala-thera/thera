@@ -32,7 +32,6 @@ to name your image and use it instead of the standard one."
   docker run -td \
     -v $SELF_DIR/_volumes/home:/root \
     -v $SELF_DIR:/root/thera \
-    -v /Users/anatolii/.ivy2:/root/.ivy2 \
     -p 8888:8888 \
     --name thera \
     --rm \

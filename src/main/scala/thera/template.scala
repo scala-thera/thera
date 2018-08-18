@@ -75,7 +75,7 @@ object template {
       , initialVars     : Json = Json.obj()
       , templateResolver: String => File = default.templateResolver
       , fragmentResolver: String => File = default.fragmentResolver
-      , templateFilters : String => TemplateFilter = Map()): Ef[String] =
+      , templateFilters : PartialFunction[String, TemplateFilter] = PartialFunction.empty): Ef[String] =
     Monad[Ef].tailRecM[TemplateLoopState, String](TemplateLoopState("", initialVars, Some(tmlPath)))
     { case TemplateLoopState(body, vars, None) =>  // Terminal case: no next template
         populate(body, vars).map(Either.right(_))
@@ -83,16 +83,24 @@ object template {
       case TemplateLoopState(body, vars, Some(nextTemplatePath)) =>
         val tmlRaw = nextTemplatePath.lines
         for {
-          // Parse the template of the current file. Apply its filters to this template.
+          // Parse the template of the current file
           parsed          <- parseTemplate(tmlRaw, vars, fragmentResolver)
-          filters          = parsed.filters.map(templateFilters)
-          tmlBodyFiltered <- filters.foldM(parsed.body) { (b, f) => f(b) }
 
           // Merge template's variables and populate the template with the current body.
           newVars = vars  // Update the `body` variable in the `vars`, merge it with `templateVars`.
             .deepMerge(parsed.vars)
             .deepMerge(Json.obj("body" -> Json.fromString(body)))
-          newBody <- populate(tmlBodyFiltered, newVars)  // Populate the templateBody with the combined `vars`. The result is the new `body`.
+
+          // Define the "populate" filter
+          populateName       = "populate"
+          tmlFiltersEnhanced = templateFilters.orElse[String, TemplateFilter] {
+            case `populateName` => b => populate(b, newVars) } // Populate the templateBody with the combined `vars`. The result is the new `body`.
+
+          // Apply filters
+          filterNames = if  (parsed.filters contains populateName) parsed.filters
+                        else parsed.filters :+ populateName  // By default, populate variables after all the other filters
+          filters     = filterNames.map(tmlFiltersEnhanced)
+          newBody    <- filters.foldM(parsed.body) { (b, f) => f(b) }
 
           // Reiterate
           newTmlPath = parsed.nextTemplateName.map(templateResolver)
