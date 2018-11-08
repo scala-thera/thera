@@ -65,7 +65,44 @@ Module(Some({
 The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
 ))))""".tail,
 
-"html-template" -> """fail""".tail,
+"html-template" -> """
+Module(None,Tree(List(Text(<!DOCTYPE html>
+<html>
+<head>
+  <title>), Variable(List(title)), Text(</title>
+</head>
+<body>
+), Variable(List(body)), Text(
+<div>
+  ), Function(List(dummy),Tree(List(Text(buf)))), Text(
+
+  <h1>Our users</h1>
+
+  ), Function(List(a),Tree(List(Text(b)))), Text(
+  ), Call(List(map),List(Tree(List(Text(b ), Variable(List(a)))))), Text(
+
+  ), Call(List(map),List(Tree(List(Variable(List(our_users)), Text( ), Function(List(u),Tree(List(Text(<p>
+      Name : ), Variable(List(u, name)), Text(
+      Email: ), Variable(List(u, email)), Text(
+    </p>
+
+    Warnings:
+    <ul>
+      ), Call(List(map),List(Tree(List(Variable(List(u, warnings)))), Tree(List(Function(List(w),Tree(List(Text(<li>), Variable(List(w)), Text(</li>
+      )))))))), Text(
+
+    </ul>
+
+    Btw here's how a smiley mustache is drawn: }
+
+    And here's some Scala code of that user:
+
+    ```{.scala file="foo.scala"}
+    ```
+  )))))))), Text(
+</div>
+</body>
+</html>))))""".tail,
 
 "three-frag" -> """
 Module(None,Tree(List(Text(I've got three as a result!))))""".tail

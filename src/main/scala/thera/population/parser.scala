@@ -88,7 +88,7 @@ object ParserTest extends App {
   import parser._
   import better.files._, better.files.File._, java.io.{ File => JFile }
 
-  val toParse = List("index")
+  val toParse = List("html-template")
 
   toParse.map(name => file"example/$name.html").foreach { file =>
     println(s"=== Parsing $file ===")
