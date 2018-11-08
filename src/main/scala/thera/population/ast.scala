@@ -11,11 +11,7 @@ object ast {
   case class   Tree(children: List[Node]) extends Node
 
   // Expr
-  case class Variable(path : List[String  ]                      ) extends Expr
-  case class Function(input: List[NamedArg], body: Tree          ) extends Expr
-  case class Call    (path : List[String  ], args: List[Argument]) extends Expr
-
-  sealed trait Argument
-  case class PositionalArg(value: Node, position: Int) extends Argument
-  case class NamedArg     (value: Node, name: String ) extends Argument
+  case class Variable(path: List[String]                  ) extends Expr
+  case class Call    (path: List[String], args: List[Node]) extends Expr
+  case class Function(args: List[String], body: Tree      ) extends Expr
 }

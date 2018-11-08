@@ -22,22 +22,37 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def tree[_: P]: P[Tree] = child.rep.map(cs => Tree(cs.toList))
+  def tree[_: P]: P[Tree] = node().rep.map(cs => Tree(cs.toList))
 
-  def child[_: P]: P[Node] = expr | text
-  def text [_: P]: P[Text] = CharsWhile(_ != '$').!.map(Text(_))
-  def expr [_: P]: P[Node] = (
-    "$$".!.map(Text(_))
-  | "${" ~ exprBody ~ "}" )
+  def node[_: P](specialChars: String = ""): P[Node] =
+    expr | text(specialChars + '$')
+  
+  def text[_: P](specialChars: String): P[Text] =
+    textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
+      Text(accum.value + t.value) } }
 
-  def exprBody[_: P]: P[Expr] = variable
+  def textOne[_: P](specialChars: String): P[Text] = (
+    oneOf(specialChars.toList.map {c => () => LiteralStr(s"$c$c").!.map(_.head.toString)})
+  | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
 
-  def variable[_: P]: P[Variable] = t.name.!.rep(min = 1, sep = ws("."))
-    .map { path => Variable(path.toList) }
+  def expr[_: P]: P[Node] = "${" ~ exprBody ~ "}"
+
+  def exprBody[_: P]: P[Expr] = call | variable
+
+  def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
+
+  def call[_: P]: P[Call] = (path ~ t.wsnl1 ~ node(",}").rep(min = 1, sep = "," ~ t.wsnl1))
+    .map { case (path, args) => Call(path, args.toList) }
+
+  def variable[_: P]: P[Variable] = path.map(Variable(_))
 }
 
 trait UtilParser { this: parser.type =>
-  def ws[_: P, A](that: => P[A]): P[A] = t.ws.rep(0) ~ that ~ t.ws.rep(0)
+  def ws[_: P, A](that: => P[A]): P[A] = t.ws0 ~ that ~ t.ws0
+  def oneOf[_: P, A](that: Seq[() => P[A]]): P[A] =
+    that.foldLeft(Fail: P[A]) { (accum, next) => accum | next() }
+
+  def wsnl[_: P, A](that: => P[A]): P[A] = t.wsnl0 ~ that ~ t.wsnl0
 }
 
 object token {
@@ -45,29 +60,26 @@ object token {
 
   def line[_: P] = !tripleDash ~ CharsWhile(_ != '\n')
 
-  def nl[_: P] = "\n"
-  def ws[_: P] = CharIn(" \t")
+  def nl1[_: P] = "\n"
+  def nl [_: P] = nl1.rep(1)
+  def nl0[_: P] = nl1.rep(0)
+
+  def ws1[_: P] = CharIn(" \t")
+  def ws [_: P] = ws1.rep(1)
+  def ws0[_: P] = ws1.rep(0)
+
+  def wsnl1[_: P] = ws1 | nl1
+  def wsnl [_: P] = wsnl1.rep(1)
+  def wsnl0[_: P] = wsnl1.rep(0)
 
   def name[_: P] = CharIn("a-zA-Z0-9\\-_").rep(1)
 }
 
 object ParserTest extends App {
   import parser._
+  import better.files._, better.files.File._, java.io.{ File => JFile }
 
-  val testExpr = """
----
-template: html-template
-filters: [currentTimeFilter]
-variables:
-  title: This stuff works!
-  one: "1"
-  two: "2"
-fragments:
-  three: three-frag
----
-I have numbers ${one}, ${three . four} and ${two}""".tail
-
-  parse(testExpr, module(_)).fold(
+  parse(file"example/index.html".contentAsString, module(_)).fold(
     (str, pos, extra) => println(s"Failure: $str, $pos, $extra")
   , (result, pos) => println(result)
   )
