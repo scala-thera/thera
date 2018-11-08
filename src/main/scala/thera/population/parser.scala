@@ -39,12 +39,12 @@ trait BodyParser { this: parser.type =>
 
   def exprBody[_: P]: P[Expr] = call | variable
 
-  def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
+  def path[_: P]: P[List[String]] = t.ws0 ~ t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
 
   def call[_: P]: P[Call] = (path ~ t.wsnl1 ~ node(",}").rep(min = 1, sep = "," ~ t.wsnl1))
     .map { case (path, args) => Call(path, args.toList) }
 
-  def variable[_: P]: P[Variable] = path.map(Variable(_))
+  def variable[_: P]: P[Variable] = (path ~ t.ws0).map(Variable(_))
 }
 
 trait UtilParser { this: parser.type =>

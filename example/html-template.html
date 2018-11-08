@@ -7,12 +7,19 @@
 ${body}
 <div>
   <h1>Our users</h1>
-  ${map our_users, u =>
+  ${map ${our_users}, ${u =>
     <p>
       Name : ${u.name}
       Email: ${u.email}
     </p>
-  }
+
+    Warnings:
+    <ul>
+      ${map ${u.warnings}, ${w =>
+        <li>${w}</li>
+      } }
+    </ul>
+  } }
 </div>
 </body>
 </html>
