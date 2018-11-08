@@ -7,6 +7,7 @@ import cats._, cats.implicits._, cats.effect._, cats.data.{ EitherT => ET }
 import io.circe._
 
 import filter.TemplateFilter
+import population._
 
 object template {
   case class TemplateLoopState(body: String, vars: Json, nextTemplatePath: Option[File])
