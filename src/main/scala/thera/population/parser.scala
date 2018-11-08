@@ -79,8 +79,14 @@ object ParserTest extends App {
   import parser._
   import better.files._, better.files.File._, java.io.{ File => JFile }
 
-  parse(file"example/index.html".contentAsString, module(_)).fold(
-    (str, pos, extra) => println(s"Failure: $str, $pos, $extra")
-  , (result, pos) => println(result)
-  )
+  val toParse = List("index", "fun_frag", "html-template", "three-frag")
+
+  toParse.map(name => file"example/$name.html").foreach { file =>
+    println(s"=== Parsing $file ===")
+    parse(file.contentAsString, module(_)).fold(
+      (str, pos, extra) => println(s"Failure: $str, $pos, $extra")
+    , (result, pos) => println(result)
+    )
+    println()
+  }
 }
