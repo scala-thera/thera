@@ -1,7 +1,7 @@
 package thera.population
 
 import fastparse._, NoWhitespace._
-import circe.Json
+import io.circe.{ Json, yaml }
 
 import ast._
 
@@ -11,8 +11,11 @@ object parser {
   def module[_: P]: P[(Option[Json], String)] = header.? ~ body.!
 
   def header[_: P]: P[Json] =
-    (t.tripleDash ~ t.nl ~ lines ~ t.nl ~ t.tripleDash).map { lines =>
-      circe.yaml.parser.parse(lines.mkString("\n")) }
+    (t.tripleDash ~/ t.nl ~ lines ~ t.nl ~ t.tripleDash).flatMap { lines =>
+      yaml.parser.parse(lines.mkString("\n")).fold(
+        error   => Fail
+      , success => Pass(success))
+    }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(sep = t.nl)
 
@@ -32,10 +35,19 @@ object ParserTest extends App {
 
   val testExpr = """
 ---
-foo bar char
-var char far
+template: html-template
+filters: [currentTimeFilter]
+variables:
+  title: This stuff works!
+  one: "1"
+  two: "2"
+fragments:
+  three: three-frag
 ---
 body""".tail
 
-  println(parse(testExpr, module(_)))
+  parse(testExpr, module(_)).fold(
+    (str, pos, extra) => println(s"Failure: $str, $pos, $extra")
+  , (result, pos) => println(result)
+  )
 }
