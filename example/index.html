@@ -5,7 +5,12 @@ variables:
   title: This stuff works!
   one: "1"
   two: "2"
+  three:
+    four: "4"
 fragments:
-  three: three-frag
+  three-f: three-frag
+  fun_frag: fun_frag
 ---
-I have numbers #{one} and #{two}. If I add them, here is what I get: #{three}.
+I have numbers ${one}, ${two} and ${three.four}. If I add them, here is what I get: ${three-f}. I can also do ${fun_frag simple, nice} and ${fun_frag complex ,,
+args,
+awesome} calls. I hope to make $$1,000,000 on this stuff I can also call ${fun_frag ${fun_frag $$1,,000,,000, good}, recursive}.

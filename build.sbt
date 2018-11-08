@@ -3,12 +3,14 @@ val ScalaVer = "2.12.7"
 val CatsEffect    = "1.0.0"
 val KindProjector = "0.9.8"
 
+val FastParse = "2.0.5"
 val CirceCore = "0.10.1"
 val CirceYaml = "0.9.0"
 
 val BetterFiles = "3.6.0"
+val CommonsIO   = "2.6"
 
-val CommonsIO = "2.6"
+val ScalaTest = "3.0.5"
 
 lazy val commonSettings = Seq(
   name         := "thera"
@@ -53,13 +55,15 @@ lazy val commonSettings = Seq(
 
 , libraryDependencies ++= Seq(
     "org.typelevel"  %% "cats-effect" % CatsEffect
-  
-  , "io.circe" %% "circe-core" % CirceCore
-  , "io.circe" %% "circe-yaml" % CirceYaml
+
+  , "com.lihaoyi" %% "fastparse"  % FastParse
+  , "io.circe"    %% "circe-core" % CirceCore
+  , "io.circe"    %% "circe-yaml" % CirceYaml
 
   , "com.github.pathikrit" %% "better-files" % BetterFiles
+  , "commons-io"           %  "commons-io"   % CommonsIO
 
-  , "commons-io" % "commons-io" % CommonsIO
+  , "org.scalatest" %% "scalatest" % ScalaTest % Test
   )
 
 , addCompilerPlugin("org.spire-math" %% "kind-projector" % KindProjector)
