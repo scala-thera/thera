@@ -5,11 +5,12 @@ import io.circe.{ Json, yaml }
 
 import ast._
 
-object parser {
+object parser extends HeaderParser with BodyParser {
   val t = token
-
   def module[_: P]: P[(Option[Json], String)] = header.? ~ body.!
+}
 
+trait HeaderParser { this: parser.type =>
   def header[_: P]: P[Json] =
     (t.tripleDash ~/ t.nl ~ lines ~ t.nl ~ t.tripleDash).flatMap { lines =>
       yaml.parser.parse(lines.mkString("\n")).fold(
@@ -18,7 +19,9 @@ object parser {
     }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(sep = t.nl)
+}
 
+trait BodyParser { this: parser.type =>
   def body[_: P]: P[String] = (AnyChar.rep.!).map(_.mkString)
 }
 
