@@ -1,19 +1,17 @@
-val ScalaVer = "2.12.6"
+val ScalaVer = "2.12.7"
 
-val Cats          = "1.1.0"
-val CatsEffect    = "0.10.1"
-val KindProjector = "0.9.7"
+val CatsEffect    = "1.0.0"
+val KindProjector = "0.9.8"
 
-val CirceCore = "0.10.0-M1"
-val CirceYaml = "0.8.0"
+val CirceCore = "0.10.1"
+val CirceYaml = "0.9.0"
 
-val CommonsIO = "2.6"
 val BetterFiles = "3.6.0"
 
 lazy val commonSettings = Seq(
   name         := "thera"
 , organization := "com.functortech"
-, version      := "0.0.3"
+, version      := "0.1.0-SNAPSHOT"
 , scalaVersion := ScalaVer
 
 // Publish to Sonatype
@@ -52,13 +50,10 @@ lazy val commonSettings = Seq(
 
 
 , libraryDependencies ++= Seq(
-    "org.typelevel"  %% "cats-core"   % Cats
-  , "org.typelevel"  %% "cats-effect" % CatsEffect
+    "org.typelevel"  %% "cats-effect" % CatsEffect
   
   , "io.circe" %% "circe-core" % CirceCore
   , "io.circe" %% "circe-yaml" % CirceYaml
-
-  , "commons-io" % "commons-io" % CommonsIO
 
   , "com.github.pathikrit" %% "better-files" % BetterFiles
   )
