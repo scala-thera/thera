@@ -7,7 +7,7 @@ import ast._
 
 object parser extends HeaderParser with BodyParser with UtilParser {
   val t = token
-  def module[_: P]: P[Module] = (header.? ~ tree).map { case (h, t) => Module(h, t) }
+  def module[_: P]: P[Module] = (header.? ~ tree()).map { case (h, t) => Module(h, t) }
 }
 
 trait HeaderParser { this: parser.type =>
@@ -22,11 +22,11 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def tree[_: P]: P[Tree] =
-    node().rep.map(cs => Tree(cs.toList))
+  def tree[_: P](specialChars: String = t.defaultSpecialChars): P[Tree] =
+    node((specialChars ++ t.defaultSpecialChars).distinct).rep.map(cs => Tree(cs.toList))
 
-  def node[_: P](specialChars: String = t.defaultSpecialChars): P[Node] =
-    expr | text(t.defaultSpecialChars ++ specialChars)
+  def node[_: P](specialChars: String): P[Node] =
+    expr | text(specialChars)
   
   def text[_: P](specialChars: String): P[Text] =
     textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
@@ -40,18 +40,18 @@ trait BodyParser { this: parser.type =>
 
   def exprBody[_: P]: P[Expr] = function | call | variable
 
-  def path[_: P]: P[List[String]] = t.ws0 ~ t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
+  def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
 
-  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~ tree)
+  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~ tree())
     .map { case (args, body) => Function(args, body) }
 
   def arg [_: P]: P[     String ] = wsnl(t.name.!)
   def args[_: P]: P[List[String]] = arg.rep(min = 1, sep = ",").map(_.toList)
 
-  def call[_: P]: P[Call] = (path ~ t.wsnl1 ~ node(",").rep(min = 1, sep = "," ~ t.wsnl1))
+  def call[_: P]: P[Call] = (wsnl(path) ~ wsnl(":") ~ tree(",").rep(min = 1, sep = "," ~ t.wsnl1.?))
     .map { case (path, args) => Call(path, args.toList) }
 
-  def variable[_: P]: P[Variable] = (path ~ t.ws0).map(Variable(_))
+  def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
 }
 
 trait UtilParser { this: parser.type =>
@@ -99,5 +99,5 @@ object ParserTest extends App {
     println()
   }
 //   println(parse("""
-// ${map ${a a}}""".tail, expr(_)))
+// ${map ${a => b}}""".tail, expr(_)))
 }

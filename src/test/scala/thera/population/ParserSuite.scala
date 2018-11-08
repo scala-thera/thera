@@ -4,6 +4,7 @@ import org.scalatest._
 
 import parser._
 import better.files._, better.files.File._, java.io.{ File => JFile }
+import fastparse._
 
 class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
   describe("Parser") {
@@ -18,10 +19,16 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
       }
     }
 
+    it("should parse calls with trees as arguments") {
+      p("${f: a ${b} c, ${d}}", expr(_)) shouldBe "Call(List(f),List(Tree(List(Text(a ), Variable(List(b)), Text( c))), Tree(List(Variable(List(d))))))"
+    }
   }
 }
 
 trait ParserSuiteHelpers {
+  def p[A](str: String, p: P[_] => P[A]): String =
+    parse(str, p(_)).get.value.toString
+
   val toParse = List("index", "fun_frag", "html-template", "three-frag")
 
   val fileResult: Map[String, String] = Map(
@@ -44,8 +51,8 @@ Module(Some({
     "fun_frag" : "fun_frag"
   }
 }),Tree(List(Text(
-I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-f)), Text(. I can also do ), Call(List(fun_frag),List(Text(simple), Text(nice))), Text( and ), Call(List(fun_frag),List(Text(complex ,
-args), Text(awesome))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Call(List(fun_frag),List(Text($1,000,000), Text(good))), Text(recursive))), Text(. We can also escape with "\".
+I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-f)), Text(. I can also do ), Call(List(fun_frag),List(Tree(List(Text(simple))), Tree(List(Text(nice))))), Text( and ), Call(List(fun_frag),List(Tree(List(Text(complex ,
+args))), Tree(List(Text(awesome))))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Tree(List(Call(List(fun_frag),List(Tree(List(Text($1,000,000))), Tree(List(Text(good))))))), Tree(List(Text(recursive))))), Text(. We can also escape with "\".
 ))))""".tail,
 
 "fun_frag" -> """

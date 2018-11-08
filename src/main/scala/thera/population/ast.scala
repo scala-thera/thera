@@ -12,6 +12,6 @@ object ast {
 
   // Expr
   case class Variable(path: List[String]                  ) extends Expr
-  case class Call    (path: List[String], args: List[Node]) extends Expr
+  case class Call    (path: List[String], args: List[Tree]) extends Expr
   case class Function(args: List[String], body: Tree      ) extends Expr
 }
