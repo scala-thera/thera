@@ -6,20 +6,34 @@
 <body>
 ${body}
 <div>
+  ${dummy => buf}
+
   <h1>Our users</h1>
-  ${map ${our_users}, ${u =>
+
+  ${a => b}
+  ${map ${a => b} }
+
+  ${map ${our_users} ${u =>
     <p>
       Name : ${u.name}
       Email: ${u.email}
     </p>
+  }}
 
     Warnings:
     <ul>
       ${map ${u.warnings}, ${w =>
         <li>${w}</li>
       } }
+
     </ul>
-  } }
+    Btw here's how a smiley mustache is drawn: }}
+
+    And here's some Scala code of that user:
+
+    ```{{.scala file="foo.scala"}}
+    ```
+  }}
 </div>
 </body>
 </html>

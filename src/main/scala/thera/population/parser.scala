@@ -22,18 +22,18 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def tree[_: P](specialChars: String = ""): P[Tree] =
-    node(specialChars).rep.map(cs => Tree(cs.toList))
+  def tree[_: P]: P[Tree] =
+    node().rep.map(cs => Tree(cs.toList))
 
-  def node[_: P](specialChars: String = ""): P[Node] =
-    expr | text(specialChars + '$')
+  def node[_: P](specialChars: String = t.defaultSpecialChars): P[Node] =
+    expr | text(t.defaultSpecialChars ++ specialChars)
   
   def text[_: P](specialChars: String): P[Text] =
     textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
       Text(accum.value + t.value) } }
 
   def textOne[_: P](specialChars: String): P[Text] = (
-    oneOf(specialChars.toList.map {c => () => LiteralStr(s"$c$c").!.map(_.head.toString)})
+    oneOf(specialChars.toList.map {c => () => LiteralStr(s"\\$c").!.map(_.tail.head.toString)})
   | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
 
   def expr[_: P]: P[Node] = "${" ~ exprBody ~ "}"
@@ -42,9 +42,13 @@ trait BodyParser { this: parser.type =>
 
   def path[_: P]: P[List[String]] = t.ws0 ~ t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
 
-  def function[_: P]: P[Function] = (args | arg.map(List(_))) ~ wsnl("=>") ~ tree("}")
+  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~ tree)
+    .map { case (args, body) => Function(args, body) }
 
-  def call[_: P]: P[Call] = (path ~ t.wsnl1 ~ node(",}").rep(min = 1, sep = "," ~ t.wsnl1))
+  def arg [_: P]: P[     String ] = wsnl(t.name.!)
+  def args[_: P]: P[List[String]] = arg.rep(min = 1, sep = ",").map(_.toList)
+
+  def call[_: P]: P[Call] = (path ~ t.wsnl1 ~ node(",").rep(min = 1, sep = "," ~ t.wsnl1))
     .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = (path ~ t.ws0).map(Variable(_))
@@ -76,13 +80,15 @@ object token {
   def wsnl0[_: P] = wsnl1.rep(0)
 
   def name[_: P] = CharIn("a-zA-Z0-9\\-_").rep(1)
+
+  val defaultSpecialChars = "${}\\"
 }
 
 object ParserTest extends App {
   import parser._
   import better.files._, better.files.File._, java.io.{ File => JFile }
 
-  val toParse = List("html-template")
+  val toParse = List("index")
 
   toParse.map(name => file"example/$name.html").foreach { file =>
     println(s"=== Parsing $file ===")
@@ -92,4 +98,6 @@ object ParserTest extends App {
     )
     println()
   }
+//   println(parse("""
+// ${map ${a a}}""".tail, expr(_)))
 }
