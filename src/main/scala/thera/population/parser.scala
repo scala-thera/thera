@@ -1,16 +1,18 @@
 package thera.population
 
 import fastparse._, NoWhitespace._
+import circe.Json
 
 import ast._
 
 object parser {
   val t = token
 
-  def module[_: P]: P[(Option[String], String)] = header.? ~ body.!
+  def module[_: P]: P[(Option[Json], String)] = header.? ~ body.!
 
-  def header[_: P]: P[String] =
-    (t.tripleDash ~ t.nl ~ lines ~ t.nl ~ t.tripleDash).map(_.mkString("\n"))
+  def header[_: P]: P[Json] =
+    (t.tripleDash ~ t.nl ~ lines ~ t.nl ~ t.tripleDash).map { lines =>
+      circe.yaml.parser.parse(lines.mkString("\n")) }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(sep = t.nl)
 
