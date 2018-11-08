@@ -22,7 +22,8 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def tree[_: P]: P[Tree] = node().rep.map(cs => Tree(cs.toList))
+  def tree[_: P](specialChars: String = ""): P[Tree] =
+    node(specialChars).rep.map(cs => Tree(cs.toList))
 
   def node[_: P](specialChars: String = ""): P[Node] =
     expr | text(specialChars + '$')
@@ -37,9 +38,11 @@ trait BodyParser { this: parser.type =>
 
   def expr[_: P]: P[Node] = "${" ~ exprBody ~ "}"
 
-  def exprBody[_: P]: P[Expr] = call | variable
+  def exprBody[_: P]: P[Expr] = function | call | variable
 
   def path[_: P]: P[List[String]] = t.ws0 ~ t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
+
+  def function[_: P]: P[Function] = (args | arg.map(List(_))) ~ wsnl("=>") ~ tree("}")
 
   def call[_: P]: P[Call] = (path ~ t.wsnl1 ~ node(",}").rep(min = 1, sep = "," ~ t.wsnl1))
     .map { case (path, args) => Call(path, args.toList) }
