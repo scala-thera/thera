@@ -5,9 +5,9 @@ import io.circe.{ Json, yaml }
 
 import ast._
 
-object parser extends HeaderParser with BodyParser {
+object parser extends HeaderParser with BodyParser with UtilParser {
   val t = token
-  def module[_: P]: P[(Option[Json], String)] = header.? ~ body.!
+  def module[_: P]: P[Module] = (header.? ~ tree).map { case (h, t) => Module(h, t) }
 }
 
 trait HeaderParser { this: parser.type =>
@@ -22,7 +22,22 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def body[_: P]: P[String] = (AnyChar.rep.!).map(_.mkString)
+  def tree[_: P]: P[Tree] = child.rep.map(cs => Tree(cs.toList))
+
+  def child[_: P]: P[Node] = expr | text
+  def text [_: P]: P[Text] = CharsWhile(_ != '$').!.map(Text(_))
+  def expr [_: P]: P[Node] = (
+    "$$".!.map(Text(_))
+  | "${" ~ exprBody ~ "}" )
+
+  def exprBody[_: P]: P[Expr] = variable
+
+  def variable[_: P]: P[Variable] = t.name.!.rep(min = 1, sep = ws("."))
+    .map { path => Variable(path.toList) }
+}
+
+trait UtilParser { this: parser.type =>
+  def ws[_: P, A](that: => P[A]): P[A] = t.ws.rep(0) ~ that ~ t.ws.rep(0)
 }
 
 object token {
@@ -31,6 +46,9 @@ object token {
   def line[_: P] = !tripleDash ~ CharsWhile(_ != '\n')
 
   def nl[_: P] = "\n"
+  def ws[_: P] = CharIn(" \t")
+
+  def name[_: P] = CharIn("a-zA-Z0-9\\-_").rep(1)
 }
 
 object ParserTest extends App {
@@ -47,7 +65,7 @@ variables:
 fragments:
   three: three-frag
 ---
-body""".tail
+I have numbers ${one}, ${three . four} and ${two}""".tail
 
   parse(testExpr, module(_)).fold(
     (str, pos, extra) => println(s"Failure: $str, $pos, $extra")
