@@ -3,8 +3,6 @@ package thera
 import java.io.File
 import scala.util.matching.Regex
 
-import org.apache.commons.io.{ FileUtils, IOUtils }
-
 import cats._, cats.implicits._, cats.effect._, cats.data.{ EitherT => ET }
 import io.circe._
 

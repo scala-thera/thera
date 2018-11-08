@@ -8,6 +8,8 @@ val CirceYaml = "0.9.0"
 
 val BetterFiles = "3.6.0"
 
+val CommonsIO = "2.6"
+
 lazy val commonSettings = Seq(
   name         := "thera"
 , organization := "com.functortech"
@@ -56,6 +58,8 @@ lazy val commonSettings = Seq(
   , "io.circe" %% "circe-yaml" % CirceYaml
 
   , "com.github.pathikrit" %% "better-files" % BetterFiles
+
+  , "commons-io" % "commons-io" % CommonsIO
   )
 
 , addCompilerPlugin("org.spire-math" %% "kind-projector" % KindProjector)
