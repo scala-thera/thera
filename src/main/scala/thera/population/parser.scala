@@ -36,19 +36,19 @@ trait BodyParser { this: parser.type =>
     oneOf(specialChars.toList.map {c => () => LiteralStr(s"\\$c").!.map(_.tail.head.toString)})
   | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
 
-  def expr[_: P]: P[Node] = "${" ~ exprBody ~ "}"
+  def expr[_: P]: P[Node] = "${" ~/ exprBody ~ "}"
 
   def exprBody[_: P]: P[Expr] = function | call | variable
 
   def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
 
-  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~ tree())
+  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~/ tree())
     .map { case (args, body) => Function(args, body) }
 
   def arg [_: P]: P[     String ] = wsnl(t.name.!)
   def args[_: P]: P[List[String]] = arg.rep(min = 1, sep = ",").map(_.toList)
 
-  def call[_: P]: P[Call] = (wsnl(path) ~ wsnl(":") ~ tree(",").rep(min = 1, sep = "," ~ t.wsnl1.?))
+  def call[_: P]: P[Call] = (wsnl(path) ~ wsnl(":") ~/ tree(",").rep(min = 1, sep = "," ~ t.wsnl1.?))
     .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
