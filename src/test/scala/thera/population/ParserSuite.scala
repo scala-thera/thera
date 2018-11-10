@@ -61,15 +61,15 @@ Function(List(body),{
 <body>
 ), Variable(List(body)), Text(
 <div>
-  ), Function(List(dummy),{
+  ), Call(List(map),List(Function(List(dummy),{
   
-},Text(buf)), Text(
+},Text(buf)))), Text(
 
   <h1>Our users</h1>
 
-  ), Function(List(a, c),{
+  ), Call(List(map),List(Function(List(a, c),{
   
-},Text(b)), Text(
+},Variable(List(a))))), Text(
   ), Call(List(map),List(Leafs(List(Text(b ), Variable(List(a)))))), Text(
 
   ), Call(List(map),List(Variable(List(our_users)), Function(List(u),{

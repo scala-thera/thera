@@ -9,11 +9,11 @@
 <body>
 ${body}
 <div>
-  ${dummy => buf}
+  ${map: ${dummy => buf}}
 
   <h1>Our users</h1>
 
-  ${a, c => b}
+  ${map: ${a, c => ${a}}}
   ${map: b ${a}}
 
   ${map: ${our_users}, ${u =>\

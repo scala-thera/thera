@@ -45,13 +45,14 @@ trait BodyParser { this: parser.type =>
 
   def expr[_: P]: P[Leaf] = "${" ~/ exprBody ~ "}"
 
-  def exprBody[_: P]: P[Leaf] = function | call | variable
+  def exprBody[_: P]: P[Leaf] = call | variable
 
-  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~/ wsnl0Esc ~ node())
+  def function[_: P]: P[Function] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ node() ~ "}")
     .map { case (args, body) => Function(args, Json.obj(), body) }
 
-  def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~ node(",").rep(min = 1, sep = "," ~ wsnl0Esc))
-    .map { case (path, args) => Call(path, args.toList) }
+  def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~
+    (function | node(",")).rep(min = 1, sep = "," ~ wsnl0Esc))
+      .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
 }
