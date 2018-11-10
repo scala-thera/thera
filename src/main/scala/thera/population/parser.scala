@@ -7,7 +7,7 @@ import ast._
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P]: P[Function] = (header.? ~ tree() ~ End).map {
+  def module[_: P]: P[Function] = (header.? ~ node() ~ End).map {
     case (Some((args, h)), t) => Function(args, h         , t)
     case (None           , t) => Function(Nil , Json.obj(), t)
   }
@@ -30,27 +30,27 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def tree[_: P](specialChars: String = ""): P[Node] =
-    node((specialChars ++ t.defaultSpecialChars).distinct).rep.map(_.toList).map {
+  def node[_: P](specialChars: String = ""): P[Node] =
+    leaf((specialChars ++ t.defaultSpecialChars).distinct).rep.map(_.toList).map {
       case n :: Nil => n
-      case ns       => Tree(ns)
+      case ns       => Leafs(ns)
     }
 
-  def node[_: P](specialChars: String): P[Node] =
+  def leaf[_: P](specialChars: String): P[Leaf] =
     expr | text(specialChars)
   
   def text[_: P](specialChars: String): P[Text] =
     textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
       Text(accum.value + t.value) } }
 
-  def expr[_: P]: P[Node] = "${" ~/ exprBody ~ "}"
+  def expr[_: P]: P[Leaf] = "${" ~/ exprBody ~ "}"
 
-  def exprBody[_: P]: P[Node] = function | call | variable
+  def exprBody[_: P]: P[Leaf] = function | call | variable
 
-  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~/ wsnl0Esc ~ tree())
+  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~/ wsnl0Esc ~ node())
     .map { case (args, body) => Function(args, Json.obj(), body) }
 
-  def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~ tree(",").rep(min = 1, sep = "," ~ wsnl0Esc))
+  def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~ node(",").rep(min = 1, sep = "," ~ wsnl0Esc))
     .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))

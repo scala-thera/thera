@@ -4,9 +4,11 @@ import io.circe.Json
 
 object ast {
   sealed trait Node
-  case class Tree    (nodes: List[Node]                          ) extends Node
-  case class Text    (value: String                              ) extends Node
-  case class Function(args : List[String], vars: Json, body: Node) extends Node
-  case class Variable(path : List[String]                        ) extends Node
-  case class Call    (path : List[String], args: List[Node]      ) extends Node
+  sealed trait Leaf                     extends Node
+  case class   Leafs(nodes: List[Leaf]) extends Node
+
+  case class Text    (value: String                              ) extends Leaf
+  case class Function(args : List[String], vars: Json, body: Node) extends Leaf
+  case class Variable(path : List[String]                        ) extends Leaf
+  case class Call    (path : List[String], args: List[Node]      ) extends Leaf
 }

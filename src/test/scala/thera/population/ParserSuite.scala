@@ -20,7 +20,7 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
     }
 
     it("should parse calls with trees as arguments") {
-      p("${f: a ${b} c, ${d}}", expr(_)) shouldBe "Call(List(f),List(Tree(List(Text(a ), Variable(List(b)), Text( c))), Variable(List(d))))"
+      p("${f: a ${b} c, ${d}}", expr(_)) shouldBe "Call(List(f),List(Leafs(List(Text(a ), Variable(List(b)), Text( c))), Variable(List(d))))"
     }
   }
 }
@@ -40,20 +40,20 @@ Function(List(),{
   "three" : {
     "four" : "4"
   }
-},Tree(List(Text(I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-frag)), Text(. I can also do ), Call(List(fun_frag),List(Text(simple), Text(nice))), Text( and ), Call(List(fun_frag),List(Text(complex ,
+},Leafs(List(Text(I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-frag)), Text(. I can also do ), Call(List(fun_frag),List(Text(simple), Text(nice))), Text( and ), Call(List(fun_frag),List(Text(complex ,
 args), Text(awesome))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Call(List(fun_frag),List(Text($1,000,000), Text(good))), Text(recursive))), Text(. We can also escape with "\".
 ))))""".tail,
 
 "fun_frag" -> """
 Function(List(msg, msg2),{
   
-},Tree(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
+},Leafs(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
 ))))""".tail,
 
 "html-template" -> """
 Function(List(body),{
   
-},Tree(List(Text(<!DOCTYPE html>
+},Leafs(List(Text(<!DOCTYPE html>
 <html>
 <head>
   <title>), Variable(List(title)), Text(</title>
@@ -70,11 +70,11 @@ Function(List(body),{
   ), Function(List(a, c),{
   
 },Text(b)), Text(
-  ), Call(List(map),List(Tree(List(Text(b ), Variable(List(a)))))), Text(
+  ), Call(List(map),List(Leafs(List(Text(b ), Variable(List(a)))))), Text(
 
   ), Call(List(map),List(Variable(List(our_users)), Function(List(u),{
   
-},Tree(List(Text(
+},Leafs(List(Text(
     <p>
       Name : ), Variable(List(u, name)), Text(
       Email: ), Variable(List(u, email)), Text(
@@ -84,7 +84,7 @@ Function(List(body),{
     <ul>
       ), Call(List(map),List(Variable(List(u, warnings)), Function(List(w),{
   
-},Tree(List(Text(
+},Leafs(List(Text(
         <li>), Variable(List(w)), Text(</li>
       )))))), Text(
 
