@@ -4,7 +4,7 @@ import org.scalatest._
 
 import parser._
 import better.files._, better.files.File._, java.io.{ File => JFile }
-import fastparse._
+import fastparse._, Parsed.{ Success, Failure }
 
 class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
   describe("Parser") {
@@ -12,10 +12,10 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
       val file = file"example/$name.html"
 
       it(s"should parse $file correctly") {
-        fastparse.parse(file.contentAsString, module(_)).fold(
-          (str, pos, extra) => fail(s"Failure: $str, $pos, $extra")
-        , (result, pos) => result.toString shouldBe fileResult(name)
-        )
+        fastparse.parse(file.contentAsString, module(_)) match {
+          case Success(result, _) => result.toString shouldBe fileResult(name)
+          case f: Failure => fail(f.toString)
+        }
       }
     }
 
@@ -33,40 +33,23 @@ trait ParserSuiteHelpers {
 
   val fileResult: Map[String, String] = Map(
 "index" -> """
-Module(Some({
-  "template" : "html-template",
-  "filters" : [
-    "currentTimeFilter"
-  ],
-  "variables" : {
-    "title" : "This stuff works!",
-    "one" : "1",
-    "two" : "2",
-    "three" : {
-      "four" : "4"
-    }
-  },
-  "fragments" : {
-    "three-f" : "three-frag",
-    "fun_frag" : "fun_frag"
+Module(List(),Some({
+  "title" : "This stuff works!",
+  "one" : "1",
+  "two" : "2",
+  "three" : {
+    "four" : "4"
   }
-}),Tree(List(Text(
-I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-f)), Text(. I can also do ), Call(List(fun_frag),List(Tree(List(Text(simple))), Tree(List(Text(nice))))), Text( and ), Call(List(fun_frag),List(Tree(List(Text(complex ,
+}),Tree(List(Text(I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-frag)), Text(. I can also do ), Call(List(fun_frag),List(Tree(List(Text(simple))), Tree(List(Text(nice))))), Text( and ), Call(List(fun_frag),List(Tree(List(Text(complex ,
 args))), Tree(List(Text(awesome))))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Tree(List(Call(List(fun_frag),List(Tree(List(Text($1,000,000))), Tree(List(Text(good))))))), Tree(List(Text(recursive))))), Text(. We can also escape with "\".
 ))))""".tail,
 
 "fun_frag" -> """
-Module(Some({
-  "parameters" : [
-    "msg",
-    "msg2"
-  ]
-}),Tree(List(Text(
-The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
+Module(List(msg, msg2),None,Tree(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
 ))))""".tail,
 
 "html-template" -> """
-Module(None,Tree(List(Text(<!DOCTYPE html>
+Module(List(body),None,Tree(List(Text(<!DOCTYPE html>
 <html>
 <head>
   <title>), Variable(List(title)), Text(</title>
@@ -107,6 +90,6 @@ Module(None,Tree(List(Text(<!DOCTYPE html>
 </html>))))""".tail,
 
 "three-frag" -> """
-Module(None,Tree(List(Text(I've got three as a result!))))""".tail
+Module(List(),None,Tree(List(Text(I've got three as a result!))))""".tail
   )
 }

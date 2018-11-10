@@ -7,18 +7,26 @@ import ast._
 
 object parser extends HeaderParser with BodyParser with UtilParser {
   val t = token
-  def module[_: P]: P[Module] = (header.? ~ tree()).map { case (h, t) => Module(h, t) }
+  def module[_: P]: P[Module] = (header.? ~ tree()).map {
+    case (Some((args, h)), t) => Module(args, h   , t)
+    case (None           , t) => Module(Nil , None, t)
+  }
 }
 
 trait HeaderParser { this: parser.type =>
-  def header[_: P]: P[Json] =
-    (t.tripleDash ~/ t.nl ~ lines ~ t.nl ~ t.tripleDash).flatMap { lines =>
-      yaml.parser.parse(lines.mkString("\n")).fold(
-        error   => Fail
-      , success => Pass(success))
+  def header[_: P]: P[(List[String], Option[Json])] =
+    (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
+      case (args, Nil  ) => Pass(args.getOrElse(Nil) -> None)
+      case (args, lines) =>
+        yaml.parser.parse(lines.mkString("\n")).fold(
+          error   => Fail
+        , success => Pass(args.getOrElse(Nil) -> Some(success)))
     }
 
-  def lines[_: P]: P[Seq[String]] = t.line.!.rep(sep = t.nl)
+  def lines[_: P]: P[Seq[String]] = t.line.!.rep(min = 0, sep = t.nl)
+
+  def moduleArgs[_: P]: P[List[String]] =
+    (wsnl("[") ~/ t.name.!.rep(sep = wsnl(",")) ~ wsnl("]")).map(_.toList)
 }
 
 trait BodyParser { this: parser.type =>
@@ -100,6 +108,7 @@ object ParserTest extends App {
     }
     println()
   }
-//   println(parse("""
-// ${map ${a => b}}""".tail, expr(_)))
+  println(parse("""
+---
+---""".tail, header(_)))
 }

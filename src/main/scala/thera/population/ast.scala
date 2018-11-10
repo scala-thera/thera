@@ -3,7 +3,7 @@ package thera.population
 import io.circe.Json
 
 object ast {
-  case class Module(header: Option[Json], body: Tree)
+  case class Module(args: List[String], header: Option[Json], body: Tree)
 
   sealed trait Node
   case class   Text(value: String) extends Node
