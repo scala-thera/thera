@@ -20,7 +20,7 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
     }
 
     it("should parse calls with trees as arguments") {
-      p("${f: a ${b} c, ${d}}", expr(_)) shouldBe "Call(List(f),List(Tree(List(Text(a ), Variable(List(b)), Text( c))), Tree(List(Variable(List(d))))))"
+      p("${f: a ${b} c, ${d}}", expr(_)) shouldBe "Call(List(f),List(Tree(List(Text(a ), Variable(List(b)), Text( c))), Variable(List(d))))"
     }
   }
 }
@@ -33,23 +33,27 @@ trait ParserSuiteHelpers {
 
   val fileResult: Map[String, String] = Map(
 "index" -> """
-Module(List(),Some({
+Function(List(),{
   "title" : "This stuff works!",
   "one" : "1",
   "two" : "2",
   "three" : {
     "four" : "4"
   }
-}),Tree(List(Text(I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-frag)), Text(. I can also do ), Call(List(fun_frag),List(Tree(List(Text(simple))), Tree(List(Text(nice))))), Text( and ), Call(List(fun_frag),List(Tree(List(Text(complex ,
-args))), Tree(List(Text(awesome))))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Tree(List(Call(List(fun_frag),List(Tree(List(Text($1,000,000))), Tree(List(Text(good))))))), Tree(List(Text(recursive))))), Text(. We can also escape with "\".
+},Tree(List(Text(I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-frag)), Text(. I can also do ), Call(List(fun_frag),List(Text(simple), Text(nice))), Text( and ), Call(List(fun_frag),List(Text(complex ,
+args), Text(awesome))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Call(List(fun_frag),List(Text($1,000,000), Text(good))), Text(recursive))), Text(. We can also escape with "\".
 ))))""".tail,
 
 "fun_frag" -> """
-Module(List(msg, msg2),None,Tree(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
+Function(List(msg, msg2),{
+  
+},Tree(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
 ))))""".tail,
 
 "html-template" -> """
-Module(List(body),None,Tree(List(Text(<!DOCTYPE html>
+Function(List(body),{
+  
+},Tree(List(Text(<!DOCTYPE html>
 <html>
 <head>
   <title>), Variable(List(title)), Text(</title>
@@ -57,14 +61,20 @@ Module(List(body),None,Tree(List(Text(<!DOCTYPE html>
 <body>
 ), Variable(List(body)), Text(
 <div>
-  ), Function(List(dummy),Tree(List(Text(buf)))), Text(
+  ), Function(List(dummy),{
+  
+},Text(buf)), Text(
 
   <h1>Our users</h1>
 
-  ), Function(List(a),Tree(List(Text(b)))), Text(
+  ), Function(List(a, c),{
+  
+},Text(b)), Text(
   ), Call(List(map),List(Tree(List(Text(b ), Variable(List(a)))))), Text(
 
-  ), Call(List(map),List(Tree(List(Variable(List(our_users)))), Tree(List(Function(List(u),Tree(List(Text(
+  ), Call(List(map),List(Variable(List(our_users)), Function(List(u),{
+  
+},Tree(List(Text(
     <p>
       Name : ), Variable(List(u, name)), Text(
       Email: ), Variable(List(u, email)), Text(
@@ -72,9 +82,11 @@ Module(List(body),None,Tree(List(Text(<!DOCTYPE html>
 
     Warnings:
     <ul>
-      ), Call(List(map),List(Tree(List(Variable(List(u, warnings)))), Tree(List(Function(List(w),Tree(List(Text(
+      ), Call(List(map),List(Variable(List(u, warnings)), Function(List(w),{
+  
+},Tree(List(Text(
         <li>), Variable(List(w)), Text(</li>
-      )))))))), Text(
+      )))))), Text(
 
     </ul>
 
@@ -84,12 +96,14 @@ Module(List(body),None,Tree(List(Text(<!DOCTYPE html>
 
     ```{.scala file="foo.scala"}
     ```
-  )))))))), Text(
+  )))))), Text(
 </div>
 </body>
 </html>))))""".tail,
 
 "three-frag" -> """
-Module(List(),None,Tree(List(Text(I've got three as a result!))))""".tail
+Function(List(),{
+  
+},Text(I've got three as a result!))""".tail
   )
 }

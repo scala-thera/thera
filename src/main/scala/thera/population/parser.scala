@@ -5,22 +5,22 @@ import io.circe.{ Json, yaml }
 
 import ast._
 
-object parser extends HeaderParser with BodyParser with UtilParser {
+object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P]: P[Module] = (header.? ~ tree()).map {
-    case (Some((args, h)), t) => Module(args, h   , t)
-    case (None           , t) => Module(Nil , None, t)
+  def module[_: P]: P[Function] = (header.? ~ tree() ~ End).map {
+    case (Some((args, h)), t) => Function(args, h         , t)
+    case (None           , t) => Function(Nil , Json.obj(), t)
   }
 }
 
 trait HeaderParser { this: parser.type =>
-  def header[_: P]: P[(List[String], Option[Json])] =
+  def header[_: P]: P[(List[String], Json)] =
     (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
-      case (args, Nil  ) => Pass(args.getOrElse(Nil) -> None)
+      case (args, Nil  ) => Pass(args.getOrElse(Nil) -> Json.obj())
       case (args, lines) =>
         yaml.parser.parse(lines.mkString("\n")).fold(
-          error   => Fail
-        , success => Pass(args.getOrElse(Nil) -> Some(success)))
+          error => Fail
+        , json  => Pass(args.getOrElse(Nil) -> json))
     }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(min = 0, sep = t.nl)
@@ -30,8 +30,11 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def tree[_: P](specialChars: String = t.defaultSpecialChars): P[Tree] =
-    node((specialChars ++ t.defaultSpecialChars).distinct).rep.map(cs => Tree(cs.toList))
+  def tree[_: P](specialChars: String = ""): P[Node] =
+    node((specialChars ++ t.defaultSpecialChars).distinct).rep.map(_.toList).map {
+      case n :: Nil => n
+      case ns       => Tree(ns)
+    }
 
   def node[_: P](specialChars: String): P[Node] =
     expr | text(specialChars)
@@ -40,26 +43,28 @@ trait BodyParser { this: parser.type =>
     textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
       Text(accum.value + t.value) } }
 
-  def textOne[_: P](specialChars: String): P[Text] = (
-    oneOf(specialChars.toList.map {c => () => LiteralStr(s"\\$c").!.map(_.tail.head.toString)})
-  | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
-
   def expr[_: P]: P[Node] = "${" ~/ exprBody ~ "}"
 
-  def exprBody[_: P]: P[Expr] = function | call | variable
-
-  def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
+  def exprBody[_: P]: P[Node] = function | call | variable
 
   def function[_: P]: P[Function] = (args ~ wsnl("=>") ~/ wsnl0Esc ~ tree())
-    .map { case (args, body) => Function(args, body) }
-
-  def arg [_: P]: P[     String ] = wsnl(t.name.!)
-  def args[_: P]: P[List[String]] = arg.rep(min = 1, sep = ",").map(_.toList)
+    .map { case (args, body) => Function(args, Json.obj(), body) }
 
   def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~ tree(",").rep(min = 1, sep = "," ~ wsnl0Esc))
     .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
+}
+
+trait BodyUtilParser { this: parser.type =>
+  def textOne[_: P](specialChars: String): P[Text] = (
+    oneOf(specialChars.toList.map {c => () => LiteralStr(s"\\$c").!.map(_.tail.head.toString)})
+  | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
+
+  def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
+
+  def arg [_: P]: P[     String ] = wsnl(t.name.!)
+  def args[_: P]: P[List[String]] = arg.rep(min = 1, sep = ",").map(_.toList)
 }
 
 trait UtilParser { this: parser.type =>
@@ -108,7 +113,7 @@ object ParserTest extends App {
     }
     println()
   }
-  println(parse("""
----
----""".tail, header(_)))
+//   println(parse("""
+// ---
+// ---""".tail, header(_)))
 }
