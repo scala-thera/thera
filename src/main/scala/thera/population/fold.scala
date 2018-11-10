@@ -2,19 +2,35 @@ package thera.population
 
 import ast._
 import io.circe._
+import fastparse.parse
+import better.files._, better.files.File._, java.io.{ File => JFile }
 
-object fold {
-//   def apply(n: Node)(implicit ctx: Module): String = this match {
-//     case Text    (str       ) => str
-//     case Tree    (nodes     ) => nodes.foldLeft("") { (accum, n) => accum + fold(n) }
-//     case Variable(path      ) => resolve(path)
-//     case Call    (path, args) => resolveFun(path)(args)
-//   }
+object funOps {
 
-//   def resolve(path: List[String])(implicit ctx: Module): String =
-//     ctx.header.map { h =>
-//       path.foldLeft(h.hcursor: ACursor)
-//         { (hc, pathElement) => hc.downField(pathElement) }
-//         .get[String]
-//     }
+  trait FunctionJvm {
+    def apply(args: List[Node]): Node
+    def apply(args: Node*): Node = apply(args.toList)
+  }
+
+  implicit class NodeOps(f: Node) {
+    def step: Either[Node, String] = f match {
+      case Text(str)        => Right(str)
+      case Call(path, args) => resolveFun(path)(args)
+      case Variable(path)   => Text(resolve(path))
+      
+      case Leafs(Nil    ) => ""
+      case Leafs(n :: nx) => compute(n) + compute(Leafs(nx))
+      
+      case Function(args, vars, body) =>
+    }
+
+    def resolve(path: List[String]): String =
+      path.foldLeft(f.vars.hcursor: ACursor)
+        { (hc, pathElement) => hc.downField(pathElement) }.get[String]
+  }
+
+  def resolveFun(path: List[String]): FunctionJvm = ??? // {
+  //   val file = File("example/" + path.mkString("/"))
+  //   parse(file.contentAsString, module(_))
+  // }
 }
