@@ -81,14 +81,16 @@ Module(None,Tree(List(Text(<!DOCTYPE html>
   ), Function(List(a),Tree(List(Text(b)))), Text(
   ), Call(List(map),List(Tree(List(Text(b ), Variable(List(a)))))), Text(
 
-  ), Call(List(map),List(Tree(List(Variable(List(our_users)))), Tree(List(Function(List(u),Tree(List(Text(<p>
+  ), Call(List(map),List(Tree(List(Variable(List(our_users)))), Tree(List(Function(List(u),Tree(List(Text(
+    <p>
       Name : ), Variable(List(u, name)), Text(
       Email: ), Variable(List(u, email)), Text(
     </p>
 
     Warnings:
     <ul>
-      ), Call(List(map),List(Tree(List(Variable(List(u, warnings)))), Tree(List(Function(List(w),Tree(List(Text(<li>), Variable(List(w)), Text(</li>
+      ), Call(List(map),List(Tree(List(Variable(List(u, warnings)))), Tree(List(Function(List(w),Tree(List(Text(
+       <li>), Variable(List(w)), Text(</li>
       )))))))), Text(
 
     </ul>

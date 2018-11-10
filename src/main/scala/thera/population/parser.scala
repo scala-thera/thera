@@ -1,6 +1,6 @@
 package thera.population
 
-import fastparse._, NoWhitespace._
+import fastparse._, NoWhitespace._, Parsed.{ Failure, Success }
 import io.circe.{ Json, yaml }
 
 import ast._
@@ -42,13 +42,13 @@ trait BodyParser { this: parser.type =>
 
   def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
 
-  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~/ tree())
+  def function[_: P]: P[Function] = (args ~ wsnl("=>") ~/ wsnl0Esc ~ tree())
     .map { case (args, body) => Function(args, body) }
 
   def arg [_: P]: P[     String ] = wsnl(t.name.!)
   def args[_: P]: P[List[String]] = arg.rep(min = 1, sep = ",").map(_.toList)
 
-  def call[_: P]: P[Call] = (wsnl(path) ~ wsnl(":") ~/ tree(",").rep(min = 1, sep = "," ~ t.wsnl1.?))
+  def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~ tree(",").rep(min = 1, sep = "," ~ wsnl0Esc))
     .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
@@ -60,6 +60,8 @@ trait UtilParser { this: parser.type =>
     that.foldLeft(Fail: P[A]) { (accum, next) => accum | next() }
 
   def wsnl[_: P, A](that: => P[A]): P[A] = t.wsnl0 ~ that ~ t.wsnl0
+
+  def wsnl0Esc[_: P] = t.wsnl0 ~ ("\\" ~ &(t.wsnl1)).? 
 }
 
 object token {
@@ -92,10 +94,10 @@ object ParserTest extends App {
 
   toParse.map(name => file"example/$name.html").foreach { file =>
     println(s"=== Parsing $file ===")
-    parse(file.contentAsString, module(_)).fold(
-      (str, pos, extra) => println(s"Failure: $str, $pos, $extra")
-    , (result, pos) => println(result)
-    )
+    parse(file.contentAsString, module(_)) match {
+      case Success(result, pos) => println(result)
+      case f: Failure => println(f)
+    }
     println()
   }
 //   println(parse("""
