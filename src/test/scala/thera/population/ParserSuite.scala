@@ -81,7 +81,7 @@ Module(None,Tree(List(Text(<!DOCTYPE html>
   ), Function(List(a),Tree(List(Text(b)))), Text(
   ), Call(List(map),List(Tree(List(Text(b ), Variable(List(a)))))), Text(
 
-  ), Call(List(map),List(Tree(List(Variable(List(our_users)), Text( ), Function(List(u),Tree(List(Text(<p>
+  ), Call(List(map),List(Tree(List(Variable(List(our_users)))), Tree(List(Function(List(u),Tree(List(Text(<p>
       Name : ), Variable(List(u, name)), Text(
       Email: ), Variable(List(u, email)), Text(
     </p>
