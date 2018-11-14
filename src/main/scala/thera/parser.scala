@@ -1,4 +1,4 @@
-package thera.population
+package thera
 
 import fastparse._, NoWhitespace._, Parsed.{ Failure, Success }
 import io.circe.{ Json, yaml }

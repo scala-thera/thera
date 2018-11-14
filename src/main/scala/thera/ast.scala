@@ -1,11 +1,12 @@
-package thera.population
+package thera
 
 import io.circe.Json
 
 object ast {
   sealed trait Node
-  sealed trait Leaf                     extends Node
-  case class   Leafs(nodes: List[Leaf]) extends Node
+  sealed trait BodyNode extends Node
+  sealed trait Leaf                     extends BodyNode
+  case class   Leafs(nodes: List[Leaf]) extends BodyNode
 
   case class Text    (value: String                              ) extends Leaf
   case class Call    (path : List[String], args: List[Node]      ) extends Leaf

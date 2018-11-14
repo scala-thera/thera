@@ -1,4 +1,4 @@
-package thera.population
+package thera
 
 import org.scalatest._
 
