@@ -14,6 +14,8 @@ sealed trait Runtime {
   }
 
   def asString: String = asData.value
+
+  def evalFuncEmpty: Fx[Runtime] = asFunc(Nil)
 }
 
 case class Data(value: String) extends Runtime

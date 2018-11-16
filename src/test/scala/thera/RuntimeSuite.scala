@@ -54,7 +54,7 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
 
 trait RuntiemSuiteHelpers {
   def processCtx(ctx: Context)(str: String): String =
-    (State.set(ctx) >> toRT(parse(str))).runEmptyA.value.asString
+    (State.set(ctx) >> toRT(parse(str)) >>= (_.evalFuncEmpty)).runEmptyA.value.asString
 
   def process(str: String): String =
     processCtx(Monoid[Context].empty)(str)
