@@ -7,8 +7,6 @@ val FastParse = "2.0.5"
 val CirceCore = "0.10.1"
 val CirceYaml = "0.9.0"
 
-val CommonsIO   = "2.6"
-
 val ScalaTest = "3.0.5"
 
 lazy val commonSettings = Seq(
@@ -58,9 +56,6 @@ lazy val commonSettings = Seq(
   , "com.lihaoyi" %% "fastparse"  % FastParse
   , "io.circe"    %% "circe-core" % CirceCore
   , "io.circe"    %% "circe-yaml" % CirceYaml
-
-  // , "com.github.pathikrit" %% "better-files" % BetterFiles
-  // , "commons-io"           %  "commons-io"   % CommonsIO
 
   , "org.scalatest" %% "scalatest" % ScalaTest % Test
   )
