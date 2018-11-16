@@ -33,6 +33,14 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
     it("should ignore the first escaped newline character") {
       p("${f: \\\n foo}", expr(_)) shouldBe "Call(List(f),List(Text( foo)))"
     }
+
+    it("should support the $name syntax") {
+      p("$foo", node()(_)) shouldBe("Variable(List(foo))")
+    }
+
+    it("should not extend the $name syntax to field access operator") {
+      p("$foo.bar", node()(_)) shouldBe("Leafs(List(Variable(List(foo)), Text(.bar)))")
+    }
   }
 }
 

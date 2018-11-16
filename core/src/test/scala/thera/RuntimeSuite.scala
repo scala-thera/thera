@@ -30,7 +30,7 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntimeSuiteHelpers {
     |---
     |name: Moon
     |---
-    |${isay: Hello ${name}}
+    |${isay: Hello $name}
     |""".fmt).asString shouldBe "I Say: Hello Moon"
   }
 

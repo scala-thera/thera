@@ -43,7 +43,7 @@ trait BodyParser { this: parser.type =>
     textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
       Text(accum.value + t.value) } }
 
-  def expr[_: P]: P[Leaf] = "${" ~/ exprBody ~ "}"
+  def expr[_: P]: P[Leaf] = "$" ~/ (variableSimple | "{" ~/ exprBody ~ "}")
 
   def exprBody[_: P]: P[Leaf] = call | variable
 
@@ -55,6 +55,8 @@ trait BodyParser { this: parser.type =>
       .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
+
+  def variableSimple[_: P]: P[Variable] = t.name.!.map(n => Variable(n :: Nil))
 }
 
 trait BodyUtilParser { this: parser.type =>
