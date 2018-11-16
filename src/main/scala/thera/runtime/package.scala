@@ -1,6 +1,6 @@
 package thera
 
-import cats._, cats.implicits._, cats.data._, cats.effect._
+import cats._, cats.implicits._, cats.data._
 import State.{ get, set, pure, modify }
 
 import thera.ast.{ Function => AstFunction, Text => AstText, _ }

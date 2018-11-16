@@ -1,7 +1,7 @@
 package thera
 package runtime
 
-import cats._, cats.implicits._, cats.data._, cats.effect._
+import cats._, cats.implicits._, cats.data._
 import org.scalatest._
 
 import Context.names
@@ -210,23 +210,6 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
 }
 
 trait RuntiemSuiteHelpers {
-  // def processCtx(ctx: Context)(str: String): String =
-  //   (State.set(ctx) >> toRT(parse(str)) >>= (_.evalFuncEmpty)).runEmptyA.value.asString
-
-  // def process(str: String): String =
-  //   processCtx(Monoid[Context].empty)(str)
-
-  // def parse(str: String): ast.Node = {
-  //   import parser.module
-  //   import fastparse.Parsed.{ Success, Failure }
-    
-  //   fastparse.parse(str, module(_)) match {
-  //     case Success(result, _) => result
-  //     case f: Failure => throw new RuntimeException(f.toString)
-  //   }
-  // }
-
-
   implicit class StringOps(str: String) {
     def fmt = str.tail.stripMargin.dropRight(1)
   }

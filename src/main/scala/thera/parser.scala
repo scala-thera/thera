@@ -99,22 +99,3 @@ object token {
 
   val defaultSpecialChars = "${}\\"
 }
-
-object ParserTest extends App {
-  import parser._
-  import better.files._, better.files.File._, java.io.{ File => JFile }
-
-  val toParse = List("html-template")
-
-  toParse.map(name => file"example/$name.html").foreach { file =>
-    println(s"=== Parsing $file ===")
-    parse(file.contentAsString, module(_)) match {
-      case Success(result, pos) => println(result)
-      case f: Failure => println(f)
-    }
-    println()
-  }
-//   println(parse("""
-// ---
-// ---""".tail, header(_)))
-}

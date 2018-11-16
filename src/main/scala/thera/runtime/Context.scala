@@ -1,6 +1,6 @@
 package thera.runtime
 
-import cats._, cats.implicits._, cats.data._, cats.effect._
+import cats._, cats.implicits._, cats.data._
 import io.circe._
 
 trait Context {

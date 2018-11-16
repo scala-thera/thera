@@ -3,16 +3,15 @@ package thera
 import org.scalatest._
 
 import parser._
-import better.files._, better.files.File._, java.io.{ File => JFile }
 import fastparse._, Parsed.{ Success, Failure }
 
 class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
   describe("Parser") {
     toParse.foreach { name =>
-      val file = file"example/$name.html"
+      val source = scala.io.Source.fromURL(classOf[ParserSuite].getResource(s"/example/$name.html")).mkString
 
-      it(s"should parse $file correctly") {
-        fastparse.parse(file.contentAsString, module(_)) match {
+      it(s"should parse $name correctly") {
+        fastparse.parse(source, module(_)) match {
           case Success(result, _) => result.toString shouldBe fileResult(name)
           case f: Failure => fail(f.toString)
         }

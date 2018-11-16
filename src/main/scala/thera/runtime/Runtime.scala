@@ -1,7 +1,7 @@
 package thera.runtime
 
 import io.circe.Json
-import cats._, cats.implicits._, cats.data._, cats.effect._
+import cats._, cats.implicits._, cats.data._
 
 sealed trait Runtime {
   def as[T](name: String)(implicit m: Manifest[T]): T =
