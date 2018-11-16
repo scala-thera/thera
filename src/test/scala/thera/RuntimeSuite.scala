@@ -130,6 +130,34 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
     |Hello World
     |""".fmt)) >>= (_.evalFuncEmpty) >>= tml).runEmptyA.value.asString shouldBe "<h1>Hello World</h1>"
   }
+
+  it should "variables can evaluate to functions" in {
+    val ctx = Ctx.names(
+      "header" -> toRT(parse("""
+      |---
+      |[surname]
+      |day: Sunday
+      |---
+      |My name is ${name} ${surname}. Today is ${day}.
+      |""".fmt)).runEmptyA.value
+
+    , "content" -> toRT(parse("""
+      |---
+      |[f]
+      |name: Jupiter
+      |---
+      |${f: Mars}
+      |Hello World
+      |""".fmt)).runEmptyA.value
+    )
+
+    processCtx(ctx)("""
+    |${content: ${header}}
+    |""".fmt) shouldBe """
+    |My name is Jupiter Mars. Today is Sunday.
+    |Hello World
+    |""".fmt
+  }
 }
 
 trait RuntiemSuiteHelpers {
