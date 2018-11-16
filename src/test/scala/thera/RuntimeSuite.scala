@@ -202,6 +202,11 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
     |${wrap: Hello World, ${x => <h1>${x}</h1>}}
     |""".fmt).asString shouldBe "Wrapped value: <h1>Hello World</h1>"
   }
+
+  it should "support filtering" in {
+    thera.compile("Hello World").mapStr { s => s"<h1>$s</h1>" }
+      .asString shouldBe "<h1>Hello World</h1>"
+  }
 }
 
 trait RuntiemSuiteHelpers {

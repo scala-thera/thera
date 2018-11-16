@@ -28,7 +28,11 @@ package object thera {
       } yield res
 
     def flatMap(that: Runtime): Ef[Runtime] = flatMap(pure[Context, Runtime](that))
+
     def >>=(that: Ef[Runtime]): Ef[Runtime] = flatMap(that)
     def >>=(that:    Runtime ): Ef[Runtime] = flatMap(that)
+
+    def mapStr(f: String => String): Ef[Runtime] =
+      ef.evalThunk.map { rt => Text(f(rt.asText.value)) }
   }
 }
