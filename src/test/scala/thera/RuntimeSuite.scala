@@ -35,7 +35,7 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
   it should "context of the caller accessible to the callee" in {
     val ctx = Ctx.names(
       "header" -> toRT(parse("""
-      |My name is ${name}
+      |My name is ${name}.
       |""".fmt)).runEmptyA.value
     )
 
