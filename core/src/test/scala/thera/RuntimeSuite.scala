@@ -23,7 +23,7 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
 
   it should "functions" in {
     implicit val ctx = names(
-      "isay" -> Function { case Text(what) :: Nil => State.pure(Text(s"I Say: $what")) }
+      "isay" -> function[Text] { case Text(what) => State.pure(Text(s"I Say: $what")) }
     )
 
     thera.compile("""
