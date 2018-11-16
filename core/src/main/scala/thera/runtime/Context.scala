@@ -26,7 +26,14 @@ object Context {
 
   implicit val monoid: Monoid[Context] = new Monoid[Context] {
     def combine(x: Context, y: Context): Context = Context { name =>
-      y.applyOpt(name) orElse x.applyOpt(name) }
+      y.applyOpt(name) orElse
+      x.applyOpt(name) orElse
+      (for {
+        h :: t <- Some(name).filter(_.length > 1)
+        data   <- y.applyOpt(h :: Nil) orElse x.applyOpt(h :: Nil)
+        res    <- json(data.asData.value).applyOpt(t)
+      } yield res)
+    }
 
     def empty: Context = Context { _ => None }
   }

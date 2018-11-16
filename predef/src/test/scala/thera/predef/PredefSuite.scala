@@ -44,7 +44,7 @@ class PredefSuite extends FlatSpec with Matchers with PredefSuiteHelpers {
     |---
     |keywords: [scala, lambda, calculus]
     |---
-    |${foreachSep: ${keywords}, ${k => ${k}\,}}
+    |${foreach: ${keywords}, ${k => ${k},}}
     |""".fmt).asString shouldBe "scala,lambda,calculus,"
   }
 

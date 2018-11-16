@@ -10,7 +10,7 @@ package object predef {
         case x :: xs => (x :: xs.flatMap(sep :: _ :: Nil)).combineAll
         case Nil     => Monoid[Runtime].empty
       }
-  } 
+  }
 
   implicit val ctx = names(
     "id" -> function[Runtime] { rt => State.pure(rt) }
