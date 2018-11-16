@@ -195,6 +195,19 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
     |One is ${one}, 2.5 is ${twoPointFive}, boolean is ${bool}, null is ${null}.
     |""".fmt) shouldBe "One is 1, 2.5 is 2.5, boolean is true, null is null."
   }
+
+  it should "support passing lambdas into functions" in {
+    processCtx(Ctx.names(
+      "wrap" -> toRT(parse("""
+      |---
+      |[wrappee, wrapper]
+      |---
+      |Wrapped value: ${wrapper: ${wrappee}}
+      |""".fmt)).runEmptyA.value
+    ))("""
+    |${wrap: Hello World, ${x => <h1>${x}</h1>}}
+    |""".fmt) shouldBe "Wrapped value: <h1>Hello World</h1>"
+  }
 }
 
 trait RuntiemSuiteHelpers {
