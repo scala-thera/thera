@@ -25,6 +25,8 @@ case class Function(f: Args => Ef[Runtime], zeroArity: Boolean = false) extends 
 }
 
 object Runtime {
+  def jsonToRuntime(json: Json): Runtime = json.asString.map(Text(_)).getOrElse(Data(json))
+
   implicit val monoid: Monoid[Runtime] = new Monoid[Runtime] {
     def combine(x: Runtime, y: Runtime): Runtime = (x, y) match {
       case (Text(s1), Text(s2)) => Text(s1 + s2)

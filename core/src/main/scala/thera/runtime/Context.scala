@@ -21,7 +21,7 @@ object Context {
 
   def json(vars: Json): Context = Context { name =>
     name.foldLeft(vars.hcursor: ACursor) { (cur, next) => cur.downField(next) }
-      .focus.map { n => n.asString.map(Text(_)).getOrElse(Data(n)) }
+      .focus.map(Runtime.jsonToRuntime)
   }
 
   implicit val monoid: Monoid[Context] = new Monoid[Context] {

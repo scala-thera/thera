@@ -75,7 +75,7 @@ trait UtilParser { this: parser.type =>
 
   def wsnl[_: P, A](that: => P[A]): P[A] = t.wsnl0 ~ that ~ t.wsnl0
 
-  def wsnl0Esc[_: P] = t.wsnl0 ~ ("\\" ~ &(t.wsnl1)).? 
+  def wsnl0Esc[_: P] = t.wsnl0 ~ ("\\" ~ t.nl1.? ~ &(t.wsnl1)).? 
 }
 
 object token {

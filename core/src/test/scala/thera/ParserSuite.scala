@@ -29,6 +29,10 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
     it("should parse calls with zero arguments even if the argument list contains spaces") {
       p("${f:  }", expr(_)) shouldBe "Call(List(f),List())"
     }
+
+    it("should ignore the first escaped newline character") {
+      p("${f: \\\n foo}", expr(_)) shouldBe "Call(List(f),List(Text( foo)))"
+    }
   }
 }
 
@@ -91,8 +95,7 @@ Function(List(body),{
     <ul>
       ), Call(List(map),List(Variable(List(u, warnings)), Function(List(w),{
   
-},Leafs(List(Text(
-        <li>), Variable(List(w)), Text(</li>
+},Leafs(List(Text(        <li>), Variable(List(w)), Text(</li>
       )))))), Text(
 
     </ul>

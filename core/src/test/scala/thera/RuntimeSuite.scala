@@ -7,7 +7,7 @@ import org.scalatest._
 import Context.names
 
 
-class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
+class RuntimeSuite extends FlatSpec with Matchers with RuntimeSuiteHelpers {
   "Runtime capabilities should include" should "identity" in {
     thera.compile("Hello World").asString shouldBe "Hello World"
   }
@@ -209,7 +209,7 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
   }
 }
 
-trait RuntiemSuiteHelpers {
+trait RuntimeSuiteHelpers {
   implicit class StringOps(str: String) {
     def fmt = str.tail.stripMargin.dropRight(1)
   }
