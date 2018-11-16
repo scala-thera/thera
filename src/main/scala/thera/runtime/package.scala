@@ -1,0 +1,37 @@
+package thera
+
+import cats._, cats.implicits._, cats.data._, cats.effect._
+import State.{ get, set, pure, modify }
+
+import thera.ast.{ Function => AstFunction, _ }
+
+
+package object runtime {
+  type Fx[A] = State[Context, A]
+  type Args  = List [Runtime   ]
+
+  def bracket[A](f: Context => Fx[A]): Fx[A] =
+    for {
+      ctx <- get
+      res <- f(ctx)
+      _   <- set(ctx)
+    } yield res
+
+  def bracket0[A](fx: Fx[A]): Fx[A] = bracket { _ => fx }
+
+  def toRTList(ns: List[Node]): Fx[List[Runtime]] =
+    bracket { ctx => ns.traverse(n => bracket0 { toRT(n) }) }
+
+  def toRT(n: Node): Fx[Runtime] = n match {
+    case Text(res) => pure(Data(res))
+    case Variable(name) => get[Context].map(_(name))
+    case Call(name, as) => bracket { ctx => toRTList(as) >>= ctx(name).toFunc }
+
+    case AstFunction(ns, vars, body) => pure(Function { as =>
+      modify[Context] { old => List(old, Context(vars), Context(ns, as)).combineAll } >>
+      toRT(body)
+    })
+
+    case Leafs(ls) => toRTList(ls).map(_.combineAll)
+  }
+}
