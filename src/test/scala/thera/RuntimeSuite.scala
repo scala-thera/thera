@@ -183,6 +183,18 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
     |Atmosphere: nonexistent
     |""".fmt
   }
+
+  it should "evaluate numbers to numbers and not to JSON" in {
+    process("""
+    |---
+    |one: 1
+    |twoPointFive: 2.5
+    |bool: true
+    |null: "null"
+    |---
+    |One is ${one}, 2.5 is ${twoPointFive}, boolean is ${bool}, null is ${null}.
+    |""".fmt) shouldBe "One is 1, 2.5 is 2.5, boolean is true, null is null."
+  }
 }
 
 trait RuntiemSuiteHelpers {
