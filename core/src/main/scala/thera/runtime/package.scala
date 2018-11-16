@@ -37,15 +37,16 @@ package object runtime {
   }
 
   // Thera Metaprogramming syntax
-  // ${map: ${index: 1, 22}, ${id => ${indent: 2, \
-  //   ${types  = ${map: ${index: 1, $id}, ${i => R$i}}}
-  //   ${params = ${map: ${index: 1, $id}, ${i => r$i}}}
-  //   def function[${mkString: ${map: $types, ${t => $t <: Runtime}}, \, }](f: (${mkString: $types, \, }) => Ef[Runtime]) = Function {
-  //     case ${mkString: ${map:
-  //         ${zip: $params, $types}
-  //       , ${pt => (${pt[0]}: ${pt[1]} @unchecked)}}
-  //     , \ :: } :: Nil => f(${mkString: $params, \, })
-  //     case x => throw new RuntimeException(s"Argument list $x is inapplicable to 1-ary function")
+  // ${foreach: ${fromTo: 1, 22}, ${id => ${indent: 2, \
+  //   ${spec = ${deepMerge: ${map: ${fromTo: 1, $id}, ${i => {
+  //     types       : R$i
+  //     typeParams  : R$i <: Runtime
+  //     params      : r$i
+  //     paramsCasted: (r$i: R$i @unchecked)
+  //   }}}}}
+  //   def function[${mkString: ${spec.typeParams}, \, }](f: (${mkString: ${spec.types}, \, }) => Ef[Runtime]) = Function {
+  //     case ${mkString: ${spec.paramsCasted}, \ :: } :: Nil => f(${mkString: ${spec.params}, \, })
+  //     case x => throw new RuntimeException(s"Argument list $x is inapplicable to $id-ary function")
   //   }
   // }}}
 
