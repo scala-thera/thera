@@ -1,12 +1,29 @@
 package thera
 
-import thera.runtime.Context.names
+import cats._, cats.implicits._, cats.data._
+import thera.runtime._, Context.names
 
 package object predef {
-  // implicit val ctx = names(
-  //   "map" -> Function {  }
+  lazy val foreachSep = function[Data, Text, Function] { (data, sep, f) =>
+    data.value.asArray.get.toList.map(Data(_))
+      .traverse(d => f(d :: Nil)).map {
+        case x :: xs => (x :: xs.flatMap(sep :: _ :: Nil)).combineAll
+        case Nil     => Monoid[Runtime].empty
+      }
+  } 
 
-  // , "if" -> ???
-  // , "indent" -> ???
-  // )
+  implicit val ctx = names(
+    "foreach" -> function[Data, Function] { (data, f) =>
+      foreachSep(data :: Text("") :: f :: Nil) }
+
+  , "foreachSep" -> foreachSep
+
+  , "if" -> function[Text, Runtime, Runtime] { (varName, ifCond, elseCond) =>
+      State.get[Context] >>= { ctx =>
+        if (ctx.applyOpt(varName.value.split("\\.").toList).isDefined) State.pure(ifCond)
+        else State.pure(elseCond) } }
+
+  , "outdent" -> function[Text, Text] { (sizeStr, text) =>
+      State.pure(Text(text.value.split("\n").toList.map(_.drop(sizeStr.value.toInt)).mkString("\n"))) }
+  )
 }
