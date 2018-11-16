@@ -26,7 +26,7 @@ package object runtime {
   def toRT(n: Node): Fx[Runtime] = n match {
     case Text(res) => pure(Data(res))
     case Variable(name) => get[Context].map(_(name))
-    case Call(name, as) => bracket { ctx => toRTList(as) >>= ctx(name).toFunc }
+    case Call(name, as) => bracket { ctx => toRTList(as) >>= ctx(name).asFunc }
 
     case AstFunction(ns, vars, body) => pure(Function { as =>
       modify[Context] { old => List(old, Context.json(vars), Context.names(ns.zip(as).toMap)).combineAll } >>

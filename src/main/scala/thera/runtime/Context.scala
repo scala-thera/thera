@@ -16,7 +16,8 @@ object Context {
 
   def map(m: Map[List[String], Runtime]) = Context(m.get)
 
-  def names(m: Map[String, Runtime]) = map(m.map { case (k, v) => List(k) -> v })
+  def names(m: Map[String, Runtime]): Context = map(m.map { case (k, v) => List(k) -> v })
+  def names(ns: (String, Runtime)*): Context = names(ns.toMap)
 
   def json(vars: Json): Context = Context { name =>
     name.foldLeft(vars.hcursor: ACursor) { (cur, next) => cur.downField(next) }

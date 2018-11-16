@@ -3,10 +3,17 @@ package thera.runtime
 import cats._, cats.implicits._, cats.data._, cats.effect._
 
 sealed trait Runtime {
-  def toFunc: Function = this match {
+  def asFunc: Function = this match {
     case f: Function => f
     case x => throw new RuntimeException(s"$x is not a function")
   }
+
+  def asData: Data = this match {
+    case d: Data => d
+    case x => throw new RuntimeException(s"$x is not a data")
+  }
+
+  def asString: String = asData.value
 }
 
 case class Data(value: String) extends Runtime
