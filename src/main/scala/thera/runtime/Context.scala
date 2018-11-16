@@ -21,12 +21,7 @@ object Context {
 
   def json(vars: Json): Context = Context { name =>
     name.foldLeft(vars.hcursor: ACursor) { (cur, next) => cur.downField(next) }
-      .focus.flatMap {
-        case s if s.isString  => s.asString                         .map(     Text(_         ))
-        case b if b.isBoolean => b.asBoolean                        .map(x => Text(x.toString))
-        case n if n.isNumber  => n.asNumber .flatMap(_.toBigDecimal).map(x => Text(x.toString))
-        case x => Some(Data(x))
-      }
+      .focus.map { n => n.asString.map(Text(_)).getOrElse(Data(n)) }
   }
 
   implicit val monoid: Monoid[Context] = new Monoid[Context] {

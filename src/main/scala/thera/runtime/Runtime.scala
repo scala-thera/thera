@@ -8,21 +8,20 @@ sealed trait Runtime {
     if (m.runtimeClass.equals(this.getClass)) this.asInstanceOf[T]
     else throw new RuntimeException(s"$this is not a $name")
 
-  def asFunc: Function = as[Function]("function")
-  def asText: Text     = as[Text    ]("text"    )
-  def asData: Data     = as[Data    ]("data"    )
+  def asFunc  : Function = as[Function]("function")
+  def asText  : Text     = as[Text    ]("text"    )
+  def asData  : Data     = as[Data    ]("data"    )
 
-  def asString: String = asText.value
-
-  def asTemplate: Runtime => Fx[Runtime] = rt => asFunc(rt :: Nil)
-
-  def evalFuncEmpty: Fx[Runtime] = asFunc(Nil)
+  def evalThunk: Ef[Runtime] = this match {
+    case Function(f, true) => f(Nil) >>= (_.evalThunk)
+    case x => State.pure(x)
+  }
 }
 
 case class Text(value: String) extends Runtime
 case class Data(value: Json  ) extends Runtime
-case class Function(f: Args => Fx[Runtime]) extends Runtime with Function1[Args, Fx[Runtime]] {
-  def apply(as: Args): Fx[Runtime] = f(as)
+case class Function(f: Args => Ef[Runtime], zeroArity: Boolean = false) extends Runtime with Function1[Args, Ef[Runtime]] {
+  def apply(as: Args): Ef[Runtime] = f(as)
 }
 
 object Runtime {
