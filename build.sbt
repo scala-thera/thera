@@ -10,8 +10,7 @@ val CirceYaml = "0.9.0"
 val ScalaTest = "3.0.5"
 
 lazy val commonSettings = Seq(
-  name         := "thera"
-, organization := "com.functortech"
+  organization := "com.functortech"
 , version      := "0.1.0-SNAPSHOT"
 , scalaVersion := ScalaVer
 
@@ -50,12 +49,11 @@ lazy val commonSettings = Seq(
   )
 
 
+// Dependencies
 , libraryDependencies ++= Seq(
-    "org.typelevel"  %% "cats-core" % CatsCore
-
-  , "com.lihaoyi" %% "fastparse"  % FastParse
-  , "io.circe"    %% "circe-core" % CirceCore
-  , "io.circe"    %% "circe-yaml" % CirceYaml
+    "org.typelevel" %% "cats-core"  % CatsCore
+  , "io.circe"      %% "circe-core" % CirceCore
+  , "io.circe"      %% "circe-yaml" % CirceYaml
 
   , "org.scalatest" %% "scalatest" % ScalaTest % Test
   )
@@ -79,7 +77,22 @@ lazy val commonSettings = Seq(
 )
 
 lazy val root = (project in file("."))
+  .aggregate(core, predef)
+  .settings(
+    publish   := {}
+  , publishTo := None
+  )
+
+lazy val core = (project in file("core"  ))
   .settings(commonSettings)
   .settings(
-    initialCommands := "import thera._, Main._"
+    name := "thera-core"
+  , libraryDependencies += "com.lihaoyi" %% "fastparse" % FastParse
+  )
+
+lazy val predef = (project in file("predef"))
+  .dependsOn(core)
+  .settings(commonSettings)
+  .settings(
+    name := "thera-predef"
   )
