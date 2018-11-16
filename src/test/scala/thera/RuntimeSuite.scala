@@ -21,7 +21,7 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
 
   it should "functions" in {
     val ctx = Ctx.names(
-      "isay" -> Function { case Data(what) :: Nil => State.pure(Data(s"I Say: $what")) }
+      "isay" -> Function { case Text(what) :: Nil => State.pure(Text(s"I Say: $what")) }
     )
 
     processCtx(ctx)("""

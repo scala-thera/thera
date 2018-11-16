@@ -3,7 +3,7 @@ package thera
 import cats._, cats.implicits._, cats.data._, cats.effect._
 import State.{ get, set, pure, modify }
 
-import thera.ast.{ Function => AstFunction, _ }
+import thera.ast.{ Function => AstFunction, Text => AstText, _ }
 
 
 package object runtime {
@@ -24,7 +24,7 @@ package object runtime {
     bracket { ctx => ns.traverse(n => bracket0 { toRT(n) }) }
 
   def toRT(n: Node): Fx[Runtime] = n match {
-    case Text(res) => pure(Data(res))
+    case AstText (res ) => pure(Text(res))
     case Variable(name) => get[Context].map(_(name))
     case Call(name, as) => bracket { ctx => toRTList(as) >>= ctx(name).asFunc }
 
