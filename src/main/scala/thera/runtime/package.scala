@@ -7,8 +7,9 @@ import thera.ast.{ Function => AstFunction, _ }
 
 
 package object runtime {
-  type Fx[A] = State[Context, A]
-  type Args  = List [Runtime   ]
+  type Fx[A] = State[Context, A ]
+  type Args  = List [Runtime]
+  val Ctx    = Context
 
   def bracket[A](f: Context => Fx[A]): Fx[A] =
     for {
@@ -28,7 +29,7 @@ package object runtime {
     case Call(name, as) => bracket { ctx => toRTList(as) >>= ctx(name).toFunc }
 
     case AstFunction(ns, vars, body) => pure(Function { as =>
-      modify[Context] { old => List(old, Context(vars), Context(ns, as)).combineAll } >>
+      modify[Context] { old => List(old, Context.json(vars), Context.names(ns.zip(as).toMap)).combineAll } >>
       toRT(body)
     })
 
