@@ -50,6 +50,73 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
     |Hello World
     |""".fmt
   }
+
+  it should "have the callee context accessible from the callee" in {
+    val ctx = Ctx.names(
+      "header" -> toRT(parse("""
+      |---
+      |day: Sunday
+      |---
+      |My name is ${name}. Today is ${day}.
+      |""".fmt)).runEmptyA.value
+    )
+
+    processCtx(ctx)("""
+    |---
+    |name: Jupiter
+    |---
+    |${header:}
+    |Hello World
+    |""".fmt) shouldBe """
+    |My name is Jupiter. Today is Sunday.
+    |Hello World
+    |""".fmt
+  }
+
+  it should "be possible to call a fragment with arguments" in {
+    val ctx = Ctx.names(
+      "header" -> toRT(parse("""
+      |---
+      |[surname]
+      |day: Sunday
+      |---
+      |My name is ${name} ${surname}. Today is ${day}.
+      |""".fmt)).runEmptyA.value
+    )
+
+    processCtx(ctx)("""
+    |---
+    |name: Jupiter
+    |---
+    |${header: Mars}
+    |Hello World
+    |""".fmt) shouldBe """
+    |My name is Jupiter Mars. Today is Sunday.
+    |Hello World
+    |""".fmt
+  }
+
+  it should "produce an exception when trying to call a function with wrong number of arguments" in {
+    val ctx = Ctx.names(
+      "header" -> toRT(parse("""
+      |---
+      |[surname]
+      |day: Sunday
+      |---
+      |My name is ${name} ${surname}.
+      |""".fmt)).runEmptyA.value
+    )
+
+    the [RuntimeException] thrownBy {
+      processCtx(ctx)("""
+      |---
+      |name: Jupiter
+      |---
+      |${header:}
+      |Hello World
+      |""".fmt)
+    } should have message "Symbol not found: surname"
+  }
 }
 
 trait RuntiemSuiteHelpers {

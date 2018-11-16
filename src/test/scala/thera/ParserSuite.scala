@@ -22,6 +22,14 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
     it("should parse calls with trees as arguments") {
       p("${f: a ${b} c, ${d}}", expr(_)) shouldBe "Call(List(f),List(Leafs(List(Text(a ), Variable(List(b)), Text( c))), Variable(List(d))))"
     }
+
+    it("should parse calls with zero arguments") {
+      p("${f:}"  , expr(_)) shouldBe "Call(List(f),List())"
+    }
+
+    it("should parse calls with zero arguments even if the argument list contains spaces") {
+      p("${f:  }", expr(_)) shouldBe "Call(List(f),List())"
+    }
   }
 }
 

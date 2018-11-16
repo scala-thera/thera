@@ -31,7 +31,7 @@ trait HeaderParser { this: parser.type =>
 
 trait BodyParser { this: parser.type =>
   def node[_: P](specialChars: String = ""): P[Node] =
-    leaf((specialChars ++ t.defaultSpecialChars).distinct).rep.map(_.toList).map {
+    leaf((specialChars ++ t.defaultSpecialChars).distinct).rep(1).map(_.toList).map {
       case n :: Nil => n
       case ns       => Leafs(ns)
     }
@@ -51,7 +51,7 @@ trait BodyParser { this: parser.type =>
     .map { case (args, body) => Function(args, Json.obj(), body) }
 
   def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~
-    (function | node(",")).rep(min = 1, sep = "," ~ wsnl0Esc))
+    (function | node(",")).rep(min = 0, sep = "," ~ wsnl0Esc))
       .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
