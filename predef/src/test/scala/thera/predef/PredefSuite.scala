@@ -63,7 +63,7 @@ class PredefSuite extends FlatSpec with Matchers with PredefSuiteHelpers {
     |stuff: I exist
     |---
     |${if: foo, it exists, it does not exist}
-    |""".fmt).asString shouldBe "it exists"
+    |""".fmt).asString shouldBe "it does not exist"
   }
 
   it should "work for nested variables" in {
