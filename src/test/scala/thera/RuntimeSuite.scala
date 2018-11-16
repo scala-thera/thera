@@ -158,6 +158,31 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
     |Hello World
     |""".fmt
   }
+
+  it should "possibility of variables evaluated to JSON" in {
+    processCtx(Ctx.names(
+      "specs" -> toRT(parse("""
+      |---
+      |[meta]
+      |---
+      |Radius: ${meta.radius}
+      |Atmosphere: ${meta.atmosphere}
+      |""".fmt)).runEmptyA.value
+    ))("""
+    |---
+    |name: Moon
+    |meta:
+    |  radius: small
+    |  atmosphere: nonexistent
+    |---
+    |This is ${name}. Its specs:
+    |${specs: ${meta}}
+    |""".fmt) shouldBe """
+    |This is Moon. Its specs:
+    |Radius: small
+    |Atmosphere: nonexistent
+    |""".fmt
+  }
 }
 
 trait RuntiemSuiteHelpers {
