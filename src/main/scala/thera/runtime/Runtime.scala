@@ -15,6 +15,8 @@ sealed trait Runtime {
 
   def asString: String = asData.value
 
+  def asTemplate: Runtime => Fx[Runtime] = rt => asFunc(rt :: Nil)
+
   def evalFuncEmpty: Fx[Runtime] = asFunc(Nil)
 }
 

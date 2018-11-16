@@ -117,6 +117,19 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntiemSuiteHelpers {
       |""".fmt)
     } should have message "Symbol not found: surname"
   }
+
+  it should "templating capabilities" in {
+    val tml = toRT(parse("""
+    |---
+    |[body]
+    |---
+    |<h1>${body}</h1>
+    |""".fmt)).runEmptyA.value.asTemplate
+
+    (toRT(parse("""
+    |Hello World
+    |""".fmt)) >>= (_.evalFuncEmpty) >>= tml).runEmptyA.value.asString shouldBe "<h1>Hello World</h1>"
+  }
 }
 
 trait RuntiemSuiteHelpers {
