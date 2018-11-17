@@ -61,7 +61,10 @@ trait BodyParser { this: parser.type =>
 
 trait BodyUtilParser { this: parser.type =>
   def textOne[_: P](specialChars: String): P[Text] = (
-    oneOf(specialChars.toList.map {c => () => LiteralStr(s"\\$c").!.map(_.tail.head.toString)})
+    "\\" ~/ (
+      oneOf(specialChars.toList.map { c => () => LiteralStr(c.toString) }).!
+    | "n".!.map { _ => "\n" }
+    )
   | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
 
   def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)

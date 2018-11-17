@@ -41,6 +41,14 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
     it("should not extend the $name syntax to field access operator") {
       p("$foo.bar", node()(_)) shouldBe("Leafs(List(Variable(List(foo)), Text(.bar)))")
     }
+
+    it("should omit trailing whitespaces in calls if they follow an expression") {
+      p("${f: foo, ${bar}  }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Variable(List(bar))))")
+    }
+
+    it("should include trailing whitespaces in calls if they follow an expression and are escaped") {
+      p("${f: foo, ${bar}\\  }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Leafs(List(Variable(List(bar)), Text(  )))))")
+    }
   }
 }
 

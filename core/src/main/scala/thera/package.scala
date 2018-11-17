@@ -12,9 +12,10 @@ package object thera {
     }
 
   implicit class EfOps(ef: Ef[Runtime])(implicit ctx: Context = Context.monoid.empty) {
-    def value   : Runtime = ef    .runA(ctx).value
-    def module  : Runtime = value .evalThunk.value
-    def asString: String  = module.asText   .value
+    def value   : Runtime  = ef    .runA(ctx).value
+    def module  : Runtime  = value .evalThunk.value
+    def asString: String   = module.asText   .value
+    def asFunc  : Function = module.asFunc
   }
 
   implicit class EfMonadOps(ef: Ef[Runtime]) {

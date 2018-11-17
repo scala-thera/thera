@@ -3,6 +3,7 @@ package predef
 
 import cats._, cats.implicits._, cats.data._
 import org.scalatest._
+import predef.implicits._
 
 
 class PredefSuite extends FlatSpec with Matchers with PredefSuiteHelpers {

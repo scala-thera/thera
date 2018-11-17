@@ -31,6 +31,7 @@ object Context {
       (for {
         h :: t <- Some(name).filter(_.length > 1)
         data   <- y.applyOpt(h :: Nil) orElse x.applyOpt(h :: Nil)
+        if data.isInstanceOf[Data]
         res    <- json(data.asData.value).applyOpt(t)
       } yield res)
     }

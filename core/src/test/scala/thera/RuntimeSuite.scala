@@ -207,6 +207,10 @@ class RuntimeSuite extends FlatSpec with Matchers with RuntimeSuiteHelpers {
     thera.compile("Hello World").mapStr { s => s"<h1>$s</h1>" }
       .asString shouldBe "<h1>Hello World</h1>"
   }
+
+  "Escape characters" should "include \\n" in {
+    thera.compile("Hello\\nWorld").asString shouldBe "Hello\nWorld"
+  }
 }
 
 trait RuntimeSuiteHelpers {

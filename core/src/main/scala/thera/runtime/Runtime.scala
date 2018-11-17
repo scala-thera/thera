@@ -22,10 +22,17 @@ case class Text(value: String) extends Runtime
 case class Data(value: Json  ) extends Runtime
 case class Function(f: Args => Ef[Runtime], zeroArity: Boolean = false) extends Runtime with Function1[Args, Ef[Runtime]] {
   def apply(as: Args): Ef[Runtime] = bracket0 { f(as) }
+
+  def apply(r1: Runtime): Ef[Runtime] = apply(r1 :: Nil)
+  def apply(r1: Runtime, r2: Runtime): Ef[Runtime] = apply(r1 :: r2 :: Nil)
+  def apply(r1: Runtime, r2: Runtime, r3: Runtime): Ef[Runtime] = apply(r1 :: r2 :: r3 :: Nil)
 }
 
 object Runtime {
-  def jsonToRuntime(json: Json): Runtime = json.asString.map(Text(_)).getOrElse(Data(json))
+
+  implicit def stringToRuntime(str : String): Runtime = Text(str )
+  implicit def jsonToRuntime  (json: Json  ): Runtime =
+    json.asString.map(Text(_)).getOrElse(Data(json))
 
   implicit val monoid: Monoid[Runtime] = new Monoid[Runtime] {
     def combine(x: Runtime, y: Runtime): Runtime = (x, y) match {
