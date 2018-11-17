@@ -31,10 +31,12 @@ trait HeaderParser { this: parser.type =>
 
 trait BodyParser { this: parser.type =>
   def node[_: P](specialChars: String = ""): P[Node] =
-    leaf((specialChars ++ t.defaultSpecialChars).distinct).rep(1).map(_.toList).map {
-      case n :: Nil => n
-      case ns       => Leafs(ns)
-    }
+    leaf((specialChars ++ t.defaultSpecialChars).distinct).rep(1).map(_.toList)
+      .map(_.filter { case Text("") => false case _ => true })
+      .map {
+        case n :: Nil => n
+        case ns       => Leafs(ns)
+      }
 
   def leaf[_: P](specialChars: String): P[Leaf] =
     expr | text(specialChars)
@@ -47,7 +49,7 @@ trait BodyParser { this: parser.type =>
 
   def exprBody[_: P]: P[Leaf] = call | variable
 
-  def function[_: P]: P[Function] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ node() ~ "}")
+  def function[_: P]: P[Function] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ node() ~ "}" ~ t.wsnl0)
     .map { case (args, body) => Function(args, Json.obj(), body) }
 
   def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~
@@ -64,6 +66,7 @@ trait BodyUtilParser { this: parser.type =>
     "\\" ~/ (
       oneOf(specialChars.toList.map { c => () => LiteralStr(c.toString) }).!
     | "n".!.map { _ => "\n" }
+    | ("s" ~ wsnl0Esc).map { _ => "" }
     )
   | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
 

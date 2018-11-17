@@ -42,12 +42,12 @@ class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
       p("$foo.bar", node()(_)) shouldBe("Leafs(List(Variable(List(foo)), Text(.bar)))")
     }
 
-    it("should omit trailing whitespaces in calls if they follow an expression") {
-      p("${f: foo, ${bar}  }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Variable(List(bar))))")
+    it("should omit whitespaces that follow the \\s control") {
+      p("${f: foo, ${bar}\\s  }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Variable(List(bar))))")
     }
 
-    it("should include trailing whitespaces in calls if they follow an expression and are escaped") {
-      p("${f: foo, ${bar}\\  }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Leafs(List(Variable(List(bar)), Text(  )))))")
+    it("functions may have trailing whitespaces which are ignored")  {
+      p("${f: foo, ${f => x} }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Function(List(f),{\n  \n},Text(x))))")
     }
   }
 }
