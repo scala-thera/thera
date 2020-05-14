@@ -56,7 +56,8 @@ lazy val core = (project in file("core"  ))
   .settings(commonSettings ++ publishingSettings)
   .settings(
     name := "thera-core",
-    libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.0"
+    libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.0",
+    libraryDependencies += "com.lihaoyi" %% "upickle" % "0.9.5",
   )
 
 lazy val predef = (project in file("predef"))

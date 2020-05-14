@@ -20,12 +20,12 @@ sealed trait Runtime {
 
 case class Text(value: String) extends Runtime
 case class Data(value: Json  ) extends Runtime
-case class Function(f: Args => Ef[Runtime], zeroArity: Boolean = false) extends Runtime with Function1[Args, Ef[Runtime]] {
-  def apply(as: Args): Ef[Runtime] = bracket0 { f(as) }
+case class Function(f: (Context, Args) => Runtime, zeroArity: Boolean = false) extends Runtime with Function1[Args, Ef[Runtime]] {
+  def apply(as: Args)(implicit ctx: Context): Runtime = f(ctx, as)
 
-  def apply(r1: Runtime): Ef[Runtime] = apply(r1 :: Nil)
-  def apply(r1: Runtime, r2: Runtime): Ef[Runtime] = apply(r1 :: r2 :: Nil)
-  def apply(r1: Runtime, r2: Runtime, r3: Runtime): Ef[Runtime] = apply(r1 :: r2 :: r3 :: Nil)
+  def apply(r1: Runtime)(implicit ctx: Context): Runtime = apply(r1 :: Nil)
+  def apply(r1: Runtime, r2: Runtime)(implicit ctx: Context): Runtime = apply(r1 :: r2 :: Nil)
+  def apply(r1: Runtime, r2: Runtime, r3: Runtime)(implicit ctx: Context): Runtime = apply(r1 :: r2 :: r3 :: Nil)
 }
 
 object Runtime {
