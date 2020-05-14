@@ -100,7 +100,5 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
-  def json(vars: Json): ValueHierarchy = ???
-
   def empty: ValueHierarchy = ValueHierarchy { _ => null }
 }
