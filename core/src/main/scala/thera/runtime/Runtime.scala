@@ -1,7 +1,6 @@
 package thera.runtime
 
-import io.circe.Json
-import cats._, cats.implicits._, cats.data._
+import thera.ast.{ Function => AstFunction, Text => AstText, _ }
 
 sealed trait Runtime {
   def as[T](name: String)(implicit m: Manifest[T]): T =
@@ -13,14 +12,35 @@ sealed trait Runtime {
   def asData: Data = as[Data]("data")
 
   def evalThunk(implicit ctx: Context): Runtime = this match {
-    case Function(f, true) => f(Nil).evalThunk
+    case Function(f, 0) => f(Nil).evalThunk
     case x => x
   }
 }
 
-case class Text(value: String) extends Runtime
-case class Data(value: Json  ) extends Runtime
-case class Function(f: (Context, Args) => Runtime, zeroArity: Boolean = false) extends Runtime with Function1[Args, Ef[Runtime]] {
+object Runtime extends Function1[Node, Runtime] {
+  /**
+   * Given an AST, evaluates that AST against a given Context.
+   * Evaluation means that all the variables and functions are
+   * resolved against the given Context and all the functions are
+   * executed.
+   */
+  def apply(n: Node)(implicit ctx: Context): Runtime = n match {
+    case AstText(res) => Text(res)
+    case Variable(name) => ctx(name)
+    case Call(name, as) => ctx(name).asFunc(as.map(toRt))
+
+    case AstFunction(argNames, vars, body) =>
+      Function({ (ctx, argValues) =>
+        implicit val funcCtx = ctx + Context.json(vars) +
+          Context.names(argNames.zip(argValues).toMap)
+        Runtime(body)
+      }, argNames.length)
+
+    case Leafs(ls) => ls.map(Runtime).foldLeft(Text(""))(_ + _)
+  }
+}
+
+case class Function(f: (Context, Args) => Text, arity: Int) extends Runtime {
   def apply(as: Args)(implicit ctx: Context): Runtime = f(ctx, as)
 
   def apply(r1: Runtime)(implicit ctx: Context): Runtime = apply(r1 :: Nil)

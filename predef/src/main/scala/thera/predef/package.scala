@@ -4,7 +4,7 @@ import cats._, cats.implicits._, cats.data._
 import thera.runtime._, Context.names
 
 package object predef { self =>
-  lazy val id = function[Runtime] { rt => State.pure(rt) }
+  lazy val id = function[Runtime] { identity }
 
   lazy val foreachSep = function[Data, Text, Function] { (data, sep, f) =>
     data.value.asArray.get.toList.map(Runtime.jsonToRuntime)
@@ -35,7 +35,7 @@ package object predef { self =>
   , "foreach"    -> foreach
   , "if"         -> ifFunc
   , "outdent"    -> outdent)
-  
+
   object implicits {
     implicit val context = predefContext
   }
