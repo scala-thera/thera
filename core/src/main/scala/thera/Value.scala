@@ -10,6 +10,23 @@ case class Function(f: List[Value] => Text) extends Value with Function1[List[Va
   def apply(x: List[Value]): Value = f(x)
 }
 
+object Function {
+  def function[R1 <: Value](f: (R1) => Value)(implicit ctx: Context) = Function {
+    case (r1: R1 @unchecked) :: Nil => f(r1)
+    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 1-ary function")
+  }
+
+  def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Value)(implicit ctx: Context) = Function {
+    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: Nil => f(r1, r2)
+    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 2-ary function")
+  }
+
+  def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3)(implicit ctx: Context) => Value) = Function {
+    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: (r3: R3 @unchecked) :: Nil => f(r1, r2, r3)
+    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 3-ary function")
+  }
+}
+
 /**
  * A tree of values. The values are indexable by their path.
  */
