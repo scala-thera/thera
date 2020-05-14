@@ -1,5 +1,8 @@
 package thera
 
+import thera.parser.module
+import fastparse.Parsed.{ Success, Failure }
+
 /**
 An evaluation of a Template is a process of resolving all its
 variables and calling all the functions in it. If a template
@@ -39,6 +42,13 @@ are as follows:
   the resulting Text.
 */
 object evaluate {
+  def apply(tmlSource: String, ctxInit: ValueHierarchy =
+      ValueHierarchy.empty): Either[List[Node] => String, String] =
+    fastparse.parse(tmlSource, module(_)) match {
+      case Success(result, _) => evaluate(result, ctxInit)
+      case f: Failure => throw new RuntimeException(f.toString)
+    }
+
   def apply(tml: Template, ctxInit: ValueHierarchy =
       ValueHierarchy.empty): Either[List[Node] => String, String] =
     implicit val ctx = ctxInit + tml.templateContext
@@ -48,7 +58,7 @@ object evaluate {
     })
     else evaluateBody(tml.body)
 
-  def evaluateBody(body: List[Node])(implicit ctx: ValueHierarchy): String = {
+  private def evaluateBody(body: List[Node])(implicit ctx: ValueHierarchy): String = {
     val evaluatedValues: List[Value] = tml.body.map(evaluateNode(_, inFunctionCall = false))
     evaluatedBody.foldLeft("") {
       case (accum, Text(str)) => accum + str
@@ -57,7 +67,7 @@ object evaluate {
     }
   }
 
-  def evaluateNode(node: Node, inFunctionCall: Boolean)(implicit ctx: ValueHierarchy): Value = node match {
+  private def evaluateNode(node: Node, inFunctionCall: Boolean)(implicit ctx: ValueHierarchy): Value = node match {
     case x: Text => x
     case Variable(path) => ctx(path) match {
       case x: Text => x
