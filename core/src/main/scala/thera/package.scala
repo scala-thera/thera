@@ -2,8 +2,6 @@ import thera.runtime._
 import thera.parser.module
 import fastparse.Parsed.{ Success, Failure }
 
-import cats._, cats.implicits._, cats.data._, State.pure
-
 package object thera {
   def compile(str: String): Ef[Runtime] =
     fastparse.parse(str, module(_)) match {

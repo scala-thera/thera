@@ -40,7 +40,7 @@ trait BodyParser { this: parser.type =>
 
   def leaf[_: P](specialChars: String): P[Leaf] =
     expr | text(specialChars)
-  
+
   def text[_: P](specialChars: String): P[Text] =
     textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
       Text(accum.value + t.value) } }
@@ -83,7 +83,7 @@ trait UtilParser { this: parser.type =>
 
   def wsnl[_: P, A](that: => P[A]): P[A] = t.wsnl0 ~ that ~ t.wsnl0
 
-  def wsnl0Esc[_: P] = t.wsnl0 ~ ("\\" ~ t.nl1.? ~ &(t.wsnl1)).? 
+  def wsnl0Esc[_: P] = t.wsnl0 ~ ("\\" ~ t.nl1.? ~ &(t.wsnl1)).?
 }
 
 object token {
