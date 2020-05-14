@@ -10,7 +10,7 @@ case class Arr(value: List[Value]) extends Value
 /**
  * A tree of values. The values are indexable by their path.
  */
-trait ValueHierarchy extends Value { self =>
+trait ValueHierarchy extends Value {
   protected def resolvePath(path: List[String]): Value
 
   /**
@@ -47,9 +47,14 @@ trait ValueHierarchy extends Value { self =>
       case x => x
     }
 
+  /**
+   * Creates a combined ValueHierarchy out of `this` and `other` ValueHierarchy.
+   * In case of a name conflict, `other` has precedence during value resolution.
+   * A name conflict is defined as a path that resolves to a Value in both hierarchies.
+   */
   def +(other: ValueHierarchy): ValueHierarchy = ValueHierarchy { name =>
-    this(name) match {
-      case null => other(name)
+    other(name) match {
+      case null => this(name)
       case x => x
     }
   }
@@ -64,10 +69,10 @@ object ValueHierarchy {
     m.get(path).orNull
   }
 
-  def names(m: Map[String, Runtime]): ValueHierarchy =
+  def names(m: Map[String, Value]): ValueHierarchy =
     map(m.map { case (k, v) => List(k) -> v })
 
-  def names(ns: (String, Runtime)*): ValueHierarchy =
+  def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
   def json(vars: Json): ValueHierarchy = ???
