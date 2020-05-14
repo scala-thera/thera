@@ -1,14 +1,11 @@
 package thera
-package predef
 
-import cats._, cats.implicits._, cats.data._
 import org.scalatest._
-import predef.implicits._
-
+import predef.context
 
 class PredefSuite extends FlatSpec with Matchers with PredefSuiteHelpers {
   "id" should "be an identity" in {
-    thera.compile("""${id: foo}""").asString shouldBe "foo" 
+    thera.compile("""${id: foo}""").asString shouldBe "foo"
   }
 
   "foreachSep" should "work" in {

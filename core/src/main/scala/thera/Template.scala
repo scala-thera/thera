@@ -26,3 +26,4 @@ case class Text(value: String) extends Node
  */
 case class Call(path: List[String], args: List[Node]) extends Node
 case class Variable(path: List[String]) extends Node
+case class Lambda(argNames: List[String], body: List[Node])

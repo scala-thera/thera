@@ -46,7 +46,7 @@ lazy val commonSettings = Seq(
 )
 
 lazy val root = (project in file("."))
-  .aggregate(core, predef)
+  .aggregate(core)
   .settings(
     publish   := {}
   , publishTo := None
@@ -58,11 +58,4 @@ lazy val core = (project in file("core"  ))
     name := "thera-core",
     libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.0",
     libraryDependencies += "com.lihaoyi" %% "ujson" % "1.1.0",
-  )
-
-lazy val predef = (project in file("predef"))
-  .dependsOn(core)
-  .settings(commonSettings ++ publishingSettings)
-  .settings(
-    name := "thera-predef"
   )

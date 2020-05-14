@@ -4,7 +4,15 @@ package thera.runtime
  * A value is data you can refer to in a template.
  */
 sealed trait Value
-case class Text(value: String) extends Value
+
+case class Text(value: String) extends Value {
+  def +(that: Text) = Text(value + that.value)
+}
+
+object Text {
+  def empty = Text("")
+}
+
 case class Arr(value: List[Value]) extends Value
 case class Function(f: List[Value] => Text) extends Value with Function1[List[Value], Value] {
   def apply(x: List[Value]): Value = f(x)
