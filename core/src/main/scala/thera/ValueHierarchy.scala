@@ -6,6 +6,9 @@ package thera.runtime
 sealed trait Value
 case class Text(value: String) extends Value
 case class Arr(value: List[Value]) extends Value
+case class Function(f: List[Value] => Value) extends Value with Function1[List[Value], Value] {
+  def apply(x: List[Value]): Value = f(x)
+}
 
 /**
  * A tree of values. The values are indexable by their path.
