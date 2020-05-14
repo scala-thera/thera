@@ -6,7 +6,7 @@ package thera.runtime
 sealed trait Value
 case class Text(value: String) extends Value
 case class Arr(value: List[Value]) extends Value
-case class Function(f: List[Value] => Value) extends Value with Function1[List[Value], Value] {
+case class Function(f: List[Value] => Text) extends Value with Function1[List[Value], Value] {
   def apply(x: List[Value]): Value = f(x)
 }
 
@@ -31,15 +31,15 @@ trait ValueHierarchy extends Value {
 
    * @return a resolved Value or null if the value does not exist.
    */
-  final def apply(path: List[String]): Value =
-    if (path.isEmpty) return null
+  final def get(path: List[String]): Value =
+    if (path.isEmpty) null
     resolvePath(path) match {
       case null =>
         @annotation.tailrec def resolveFromIntermediaryValueHierarchy(subpathLength: Int): Value = {
           val (subpath, leftover) = (path.take(subpathLength), path.drop(subpathLength))
           if (subpath.isEmpty) null
           else resolvePath(subpath) match {
-            case ctx: ValueHierarchy => ctx(leftover) match {
+            case ctx: ValueHierarchy => ctx.get(leftover) match {
               case null => resolveFromIntermediaryValueHierarchy(subpathLength - 1)
               case x => x
             }
@@ -49,6 +49,11 @@ trait ValueHierarchy extends Value {
         resolveFromIntermediaryValueHierarchy(path.length)
       case x => x
     }
+
+  final def apply(path: List[String]): Value = get(path) match {
+    case null => throw new RuntimeException(s"Value not found: ${path.mkString(".")}")
+    case x => x
+  }
 
   /**
    * Creates a combined ValueHierarchy out of `this` and `other` ValueHierarchy.
