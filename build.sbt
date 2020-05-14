@@ -1,79 +1,48 @@
-val ScalaVer = "2.12.7"
+lazy val publishingSettings = List(
+  organizationHomepage := Some(url("https://akmetiuk.com/")),
 
-val CatsCore      = "1.4.0"
-val KindProjector = "0.9.8"
-
-val FastParse = "2.0.5"
-val CirceCore = "0.10.1"
-val CirceYaml = "0.9.0"
-
-val ScalaTest = "3.0.5"
-
-lazy val commonSettings = Seq(
-  organization := "com.functortech"
-, version      := "0.1.0-SNAPSHOT"
-, scalaVersion := ScalaVer
-
-// Publish to Sonatype
-, useGpg := true
-, pgpSecretRing := file("/Users/anatolii/.gnupg/secring.gpg")
-, pgpPublicRing := file("/Users/anatolii/.gnupg/pubring.kbx")
-
-, pomIncludeRepository := { _ => false }
-, publishMavenStyle := true
-, publishTo := {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot.value)
-      Some("snapshots" at nexus + "content/repositories/snapshots")
-    else
-      Some("releases"  at nexus + "service/local/staging/deploy/maven2")
-  }
-
-, licenses := Seq("BSD-style" -> url("http://www.opensource.org/licenses/bsd-license.php"))
-, homepage := Some(url("https://github.com/anatoliykmetyuk/thera"))
-
-, scmInfo := Some(
+  scmInfo := Some(
     ScmInfo(
       url("https://github.com/anatoliykmetyuk/thera"),
-      "scm:git@github.com/anatoliykmetyuk/thera.git"
+      "scm:git@github.com:anatoliykmetyuk/thera.git"
     )
-  )
+  ),
 
-, developers := List(
+  developers := List(
     Developer(
       id    = "anatoliykmetyuk",
       name  = "Anatolii Kmetiuk",
-      email = "anatolii@functortech.com",
-      url   = url("http://akmetiuk.com/")
+      email = "anatoliykmetyuk@gmail.com",
+      url   = url("https://akmetiuk.com")
     )
-  )
+  ),
+
+  description := "A template processor for Scala",
+  licenses := List("Apache 2" -> new URL("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+  homepage := Some(url("https://github.com/anatoliykmetyuk/thera")),
+
+  // Remove all additional repository other than Maven Central from POM
+  pomIncludeRepository := { _ => false },
+  publishMavenStyle := true,
+  publishTo := sonatypePublishToBundle.value,
+
+  credentials ++= (
+    for {
+      username <- sys.env.get("SONATYPE_USER")
+      password <- sys.env.get("SONATYPE_PW")
+    } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", username, password)
+  ).toList,
+
+  Global / PgpKeys.gpgCommand := (baseDirectory.value / "project/scripts/gpg.sh").getAbsolutePath,
+)
 
 
-// Dependencies
-, libraryDependencies ++= Seq(
-    "org.typelevel" %% "cats-core"  % CatsCore
-  , "io.circe"      %% "circe-core" % CirceCore
-  , "io.circe"      %% "circe-yaml" % CirceYaml
+lazy val commonSettings = Seq(
+  organization := "com.akmetiuk",
+  version      := "0.2.0",
+  scalaVersion := "2.13.2",
 
-  , "org.scalatest" %% "scalatest" % ScalaTest % Test
-  )
-
-, addCompilerPlugin("org.spire-math" %% "kind-projector" % KindProjector)
-, scalacOptions ++= Seq(
-      "-deprecation"
-    , "-encoding", "UTF-8"
-    , "-feature"
-    , "-language:existentials"
-    , "-language:higherKinds"
-    , "-language:implicitConversions"
-    , "-language:experimental.macros"
-    , "-unchecked"
-    // , "-Xfatal-warnings"
-    // , "-Xlint"
-    // , "-Yinline-warnings"
-    , "-Ywarn-dead-code"
-    , "-Xfuture"
-    , "-Ypartial-unification")
+  libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.4" % Test
 )
 
 lazy val root = (project in file("."))
@@ -84,15 +53,15 @@ lazy val root = (project in file("."))
   )
 
 lazy val core = (project in file("core"  ))
-  .settings(commonSettings)
+  .settings(commonSettings ++ publishingSettings)
   .settings(
-    name := "thera-core"
-  , libraryDependencies += "com.lihaoyi" %% "fastparse" % FastParse
+    name := "thera-core",
+    libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.0"
   )
 
 lazy val predef = (project in file("predef"))
   .dependsOn(core)
-  .settings(commonSettings)
+  .settings(commonSettings ++ publishingSettings)
   .settings(
     name := "thera-predef"
   )
