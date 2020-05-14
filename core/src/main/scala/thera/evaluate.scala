@@ -67,7 +67,8 @@ object evaluate {
     }
   }
 
-  private def evaluateNode(node: Node, inFunctionCall: Boolean)(implicit ctx: ValueHierarchy): Value = node match {
+  private def evaluateNode(node: Node, inFunctionCall: Boolean)(
+      implicit ctx: ValueHierarchy): Value = node match {
     case x: Text => x
     case Variable(path) => ctx(path) match {
       case x: Text => x
@@ -83,5 +84,12 @@ object evaluate {
       }
       val args: List[Value] = argsNodes.map(evaluateNode(_, inFunctionCall = true))
       f(args)
+    case Lambda(argNames, body) =>
+      if (!inFunctionCall) throw new RuntimeException(
+        s"Lambda nodes are only permitted as arguments to functions")
+      Function { argValues =>
+        implicit val ctx2 = ctx + ValueHierarchy.names(argNames.zip(argValues).toMap)
+        evaluateBody(body)
+      }
   }
 }

@@ -50,7 +50,7 @@ trait BodyParser { this: parser.type =>
   def exprBody[_: P]: P[Leaf] = call | variable
 
   def function[_: P]: P[Function] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ node() ~ "}" ~ t.wsnl0)
-    .map { case (args, body) => Function(args, Json.obj(), body) }
+    .map { case (args, body) => Lambda(args, body) }
 
   def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~
     (function | node(",")).rep(min = 0, sep = "," ~ wsnl0Esc))
