@@ -9,17 +9,20 @@ class ParserSuite extends TestSuite with ParserSuiteHelpers {
   val tests = Tests {
     test("Parser") {
 
-      test("Named tests") - toParse.foreach { case (name, input, output) =>
-        fastparse.parse(input, module(_)) match {
-          case Success(result, _) =>
-            try assert(result.toString == fileResult(name))
-            catch {
-              case t: AssertError =>
-                sys.err.println(s"Named test failure: $name")
-                throw t
-            }
-          case f: Failure => throw new RuntimeException(s"Named test failure: $name\n${f.toString}")
+      test("Named tests") {
+        def check(name: String): Unit = {
+          def read(path: String): String =
+            scala.io.Source.fromURL(classOf[ParserSuite]
+              .getResource(path)).mkString
+          val input = read(s"/parser/input/$name")
+          val output = read(s"/parser/output/$name")
+          assert(input == output)
         }
+
+        test("fun-frag") - check("fun-frag")
+        test("html-template") - check("html-template")
+        test("index") - check("index")
+        test("tree-frag") - check("tree-frag")
       }
 
       test("should parse calls with trees as arguments") {
