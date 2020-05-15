@@ -23,3 +23,6 @@ project/plugins/project/
 
 # Project-specific data
 /data/
+
+# Mac
+.DS_Store

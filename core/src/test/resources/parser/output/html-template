@@ -1,0 +1,48 @@
+Function(List(body),{
+
+},Leafs(List(Text(<!DOCTYPE html>
+<html>
+<head>
+  <title>), Variable(List(title)), Text(</title>
+</head>
+<body>
+), Variable(List(body)), Text(
+<div>
+  ), Call(List(map),List(Function(List(dummy),{
+
+},Text(buf)))), Text(
+
+  <h1>Our users</h1>
+
+  ), Call(List(map),List(Function(List(a, c),{
+
+},Variable(List(a))))), Text(
+  ), Call(List(map),List(Leafs(List(Text(b ), Variable(List(a)))))), Text(
+
+  ), Call(List(map),List(Variable(List(our_users)), Function(List(u),{
+
+},Leafs(List(Text(
+    <p>
+      Name : ), Variable(List(u, name)), Text(
+      Email: ), Variable(List(u, email)), Text(
+    </p>
+
+    Warnings:
+    <ul>
+      ), Call(List(map),List(Variable(List(u, warnings)), Function(List(w),{
+
+},Leafs(List(Text(        <li>), Variable(List(w)), Text(</li>
+      )))))), Text(
+
+    </ul>
+
+    Btw here's how a smiley mustache is drawn: }
+
+    And here's some Scala code of that user:
+
+    ```{.scala file="foo.scala"}
+    ```
+  )))))), Text(
+</div>
+</body>
+</html>))))
