@@ -108,5 +108,7 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
+  def yaml(src: String): ValueHierarchy = ???
+
   def empty: ValueHierarchy = ValueHierarchy { _ => null }
 }

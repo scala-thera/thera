@@ -1,7 +1,6 @@
 package thera
 
 import fastparse._, NoWhitespace._, Parsed.{ Failure, Success }
-import io.circe.{ Json, yaml }
 
 import ast._
 
@@ -9,18 +8,16 @@ object parser extends HeaderParser with BodyParser with BodyUtilParser with Util
   val t = token
   def module[_: P]: P[Function] = (header.? ~ node() ~ End).map {
     case (Some((args, h)), t) => Function(args, h         , t)
-    case (None           , t) => Function(Nil , Json.obj(), t)
+    case (None           , t) => Function(Nil , ValueHierarchy.empty, t)
   }
 }
 
 trait HeaderParser { this: parser.type =>
-  def header[_: P]: P[(List[String], Json)] =
+  def header[_: P]: P[(List[String], ValueHierarchy)] =
     (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
-      case (args, Nil  ) => Pass(args.getOrElse(Nil) -> Json.obj())
-      case (args, lines) =>
-        yaml.parser.parse(lines.mkString("\n")).fold(
-          error => Fail
-        , json  => Pass(args.getOrElse(Nil) -> json))
+      case (args, Nil  ) => Pass(args.getOrElse(Nil) -> ValueHierarchy.empty)
+      case (args, lines) => Pass(args.getOrElse(Nil) ->
+        ValueHierarchy.yaml(lines.mkString("\n")))
     }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(min = 0, sep = t.nl)
