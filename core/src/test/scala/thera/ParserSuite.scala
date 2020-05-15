@@ -5,7 +5,7 @@ import utest._
 import parser._
 import fastparse._, Parsed.{ Success, Failure }
 
-class ParserSuite extends TestSuite with ParserSuiteHelpers {
+class ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
       val (input, output) = readIO("/parser/input/$name")
@@ -14,6 +14,10 @@ class ParserSuite extends TestSuite with ParserSuiteHelpers {
         case f: Failure => throw new RuntimeException(f.toString)
       }
     }
+
+    def p[A](str: String, p: P[_] => P[A]): String =
+      parse(str, p(_)).get.value.toString
+
 
     test("Named tests") {
       test("fun-frag") - check("fun-frag")
@@ -76,31 +80,6 @@ class ParserSuite extends TestSuite with ParserSuiteHelpers {
         p("${f: foo, ${f => x} }", expr(_)) ==
         ("Call(List(f),List(Text(foo), Function(List(f),{\n  \n},Text(x))))")
       )
-    }
-  }
-}
-
-trait ParserSuiteHelpers {
-  def p[A](str: String, p: P[_] => P[A]): String =
-    parse(str, p(_)).get.value.toString
-
-  def toParse: List[(String, String, String)] = {
-    val classLoader = classOf[ParserSuite].getClassLoader
-
-    def listFilesInDir(dir: String): List[File] = {
-      val url = loader.getResource(dir)
-      val path = url.getPath
-      new File(path).listFiles.asScala
-    }
-
-    val cases: List[File] = listFilesInDir("/parser/input")
-
-    cases.map { inputFile =>
-      val name = f.getName
-      val outputFile = new File(inputFile.parentDirectory, "/output/$name")
-      val input = Source.fromFile(inputFile).mkString
-      val output = Source.fromFile(outputFile).mkString
-      (name, input, output)
     }
   }
 }

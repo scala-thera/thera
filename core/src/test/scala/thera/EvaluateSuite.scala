@@ -2,7 +2,7 @@ package thera
 
 import utest._
 
-class EvaluateSuite extends TestSuite with RuntimeSuiteHelpers {
+class EvaluateSuite extends TestSuite {
   val tests = Tests {
     def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
       val (input, output) = readIO("/parser/input/$name")
@@ -192,11 +192,5 @@ class EvaluateSuite extends TestSuite with RuntimeSuiteHelpers {
     "Escape characters" should "include \\n" in {
       thera.compile("Hello\\nWorld").asString shouldBe "Hello\nWorld"
     }
-  }
-}
-
-trait RuntimeSuiteHelpers {
-  implicit class StringOps(str: String) {
-    def fmt = str.tail.stripMargin.dropRight(1)
   }
 }
