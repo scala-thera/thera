@@ -30,8 +30,8 @@ are as follows:
     the Variable stays unresolved without an error.
 - A function call is resolved as follows:
   - The name is resolved to a Function against `ctx`
-  - The arguments, which can be either Str, a Call or a Variable,
-    are resolved as specified in these rules, recursively.
+  - The arguments, each of which can be either a List[Node]
+    or a Lambda, are resolved as specified in these rules, recursively.
   - The function is called with the resolved arguments and the
     resulting Str is substituted in place of the function call.
 - If the template does not have any arguments, its body must consist
@@ -45,11 +45,11 @@ object evaluate {
   def apply(tmlSource: String, ctxInit: ValueHierarchy =
       ValueHierarchy.empty): Either[List[Value] => String, String] =
     fastparse.parse(tmlSource, module(_)) match {
-      case Success(result, _) => evaluate(result, ctxInit)
+      case Success(result, _) => evaluate.template(result, ctxInit)
       case f: Failure => throw new RuntimeException(f.toString)
     }
 
-  def apply(tml: Template, ctxInit: ValueHierarchy =
+  def template(tml: Template, ctxInit: ValueHierarchy =
       ValueHierarchy.empty): Either[List[Value] => String, String] = {
     var ctx = ctxInit + tml.templateContext
     if (tml.argNames.nonEmpty) Left( { argValues =>
@@ -59,14 +59,9 @@ object evaluate {
     else Right(evaluateBody(tml.body)(ctx))
   }
 
-  private def evaluateBody(body: List[Node])(implicit ctx: ValueHierarchy): String = {
-    val evaluatedValues: List[Value] = body.map(evaluateNode(_, inFunctionCall = false))
-    evaluatedValues.foldLeft("") {
-      case (accum, Str(str)) => accum + str
-      case (_, x) => throw new RuntimeException(
-        s"Error evaluating template: non-text value $x encountered. " +
-        s"Full evaluation:\n$evaluatedValues")
-    }
+  private def evaluateBody(body: Body)(implicit ctx: ValueHierarchy): String = {
+    val evaluatedValues: List[Value] = body.nodes.map(evaluateNode(_, inFunctionCall = false))
+    nodesToString(evaluatedValues)
   }
 
   private def evaluateNode(node: Node, inFunctionCall: Boolean)(
@@ -84,14 +79,26 @@ object evaluate {
         case x => throw new RuntimeException(
           s"Expected function at path ${path.mkString(".")}, got: $x")
       }
-      val args: List[Value] = argsNodes.map(evaluateNode(_, inFunctionCall = true))
-      f(args)
-    case Lambda(argNames, body) =>
-      if (!inFunctionCall) throw new RuntimeException(
-        s"Lambda nodes are only permitted as arguments to functions")
-      Function { argValues =>
-        val ctx2 = ctx + ValueHierarchy.names(argNames.zip(argValues).toMap)
-        Str(evaluateBody(body)(ctx2))
+      val args: List[Value] = argsNodes.map {
+        case Lambda(argNames, body) =>
+          Function { argValues =>
+            val ctx2 = ctx + ValueHierarchy.names(argNames.zip(argValues).toMap)
+            Str(evaluateBody(body)(ctx2))
+          }
+        case b: Body =>
+          b.nodes.map(evaluateNode(_, inFunctionCall = true)) match {
+            case x :: Nil => x
+            case xs => Str(nodesToString(xs))
+          }
       }
+      f(args)
   }
+
+  private def nodesToString(ns: List[Value]): String =
+    ns.foldLeft("") {
+      case (accum, Str(str)) => accum + str
+      case (_, x) => throw new RuntimeException(
+        s"Error evaluating template: non-text value $x encountered. " +
+        s"Full evaluation:\n$ns")
+    }
 }

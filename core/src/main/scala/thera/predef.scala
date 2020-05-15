@@ -7,7 +7,7 @@ object predef { self =>
 
   val foreachSep = function[Arr, Str, Function] { (data, sep, f) =>
     val texts: List[Str] = data.value.map(d => f(d :: Nil))
-    @annotation.tailrec def loop(ls: List[Str]): Str = ls match {
+    def loop(ls: List[Str]): Str = ls match {
       case x :: y :: xs => x + sep + loop(y :: xs)
       case x :: Nil => x
       case Nil => Str.empty
@@ -20,7 +20,7 @@ object predef { self =>
   }
 
   val ifFunc = function[Str, Str, Str] { (cond, ifCond, elseCond) =>
-    if (cond == "true") ifCond
+    if (cond.value == "true") ifCond
     else elseCond
   }
 

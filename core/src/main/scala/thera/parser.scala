@@ -4,8 +4,8 @@ import fastparse._, NoWhitespace._, Parsed.{ Failure, Success }
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P]: P[Template] = (header.? ~ node() ~ End).map {
-    case (Some((args, h)), t) => Template(args, h         , t)
+  def module[_: P]: P[Template] = (header.? ~ body() ~ End).map {
+    case (Some((args, h)), t) => Template(args, h, t)
     case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
   }
 }
@@ -25,45 +25,45 @@ trait HeaderParser { this: parser.type =>
 }
 
 trait BodyParser { this: parser.type =>
-  def node[_: P](specialChars: String = ""): P[Node] =
-    leaf((specialChars ++ t.defaultSpecialChars).distinct).rep(1).map(_.toList)
-      .map(_.filter { case Str("") => false case _ => true })
-      .map {
-        case n :: Nil => n
-        case ns       => Leafs(ns)
-      }
+  def body[_: P](specialChars: String = ""): P[Body] =
+    node((specialChars ++ t.defaultSpecialChars).distinct).rep(1)
+      .map(_.toList.filter { case Text("") => false case _ => true })
+      .map(ns => Body(ns))
 
-  def leaf[_: P](specialChars: String): P[Leaf] =
+  def node[_: P](specialChars: String): P[Node] =
     expr | text(specialChars)
 
-  def text[_: P](specialChars: String): P[Str] =
-    textOne(specialChars).rep(1).map { texts => texts.foldLeft(Str("")) { (accum, t) =>
-      Str(accum.value + t.value) } }
 
-  def expr[_: P]: P[Leaf] = "$" ~/ (variableSimple | "{" ~/ exprBody ~ "}")
+  def text[_: P](specialChars: String): P[Text] =
+    textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
+      Text(accum.value + t.value) } }
 
-  def exprBody[_: P]: P[Leaf] = call | variable
+  def expr[_: P]: P[Node] = "$" ~/ (variableSimple | "{" ~/ exprBody ~ "}")
 
-  def function[_: P]: P[Template] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ node() ~ "}" ~ t.wsnl0)
-    .map { case (args, body) => Lambda(args, body) }
+  def exprBody[_: P]: P[Node] = call | variable
+
 
   def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~
-    (function | node(",")).rep(min = 0, sep = "," ~ wsnl0Esc))
+    (function | body(",")).rep(min = 0, sep = "," ~ wsnl0Esc))
       .map { case (path, args) => Call(path, args.toList) }
 
   def variable[_: P]: P[Variable] = wsnl(path).map(Variable(_))
+
+
+  def function[_: P]: P[Lambda] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ body() ~ "}" ~ t.wsnl0)
+    .map { case (args, body) => Lambda(args, body) }
 
   def variableSimple[_: P]: P[Variable] = t.name.!.map(n => Variable(n :: Nil))
 }
 
 trait BodyUtilParser { this: parser.type =>
-  def textOne[_: P](specialChars: String): P[Str] = (
+  def textOne[_: P](specialChars: String): P[Text] = (
     "\\" ~/ (
       oneOf(specialChars.toList.map { c => () => LiteralStr(c.toString) }).!
     | "n".!.map { _ => "\n" }
     | ("s" ~ wsnl0Esc).map { _ => "" }
     )
-  | CharsWhile(c => !specialChars.contains(c)).! ).map(Str)
+  | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
 
   def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
 
