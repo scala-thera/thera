@@ -1,5 +1,7 @@
 package thera.runtime
 
+import com.amihaiemil.eoyaml.Yaml
+
 /**
  * A value is data you can refer to in a template.
  */
@@ -95,7 +97,7 @@ trait ValueHierarchy extends Value {
 
 object ValueHierarchy {
   def apply(f: List[String] => Value): ValueHierarchy = new ValueHierarchy {
-    def apply(name: List[String]): Value = f(name)
+    protected def resolvePath(name: List[String]): Value = f(name)
   }
 
   def map(m: Map[List[String], Value]) = ValueHierarchy { path =>
@@ -108,7 +110,30 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
-  def yaml(src: String): ValueHierarchy = ???
+  def yaml(src: String): ValueHierarchy = {
+    def valueFromNode(node: YamlNode): Value = {
+      @annotation.tailrec
+      def searchInMapping(path: List[String], m: YamlMapping): Value =
+        path match {
+          case Nil => null
+          case name :: Nil => valueFromNode(m.value(name))
+          case name :: rest => m.value(name) match {
+            case x: YamlMapping => searchInMapping(rest, x)
+            case _ => null
+          }
+        }
+
+      node match {
+        case x: Scalar => Text(x.value)
+        case x: YamlSequence => Arr(x.values.map(valueFromNode))
+        case x: YamlMapping => ValueHierarchy { path => searchInMapping(path, x) }
+        case null => null
+      }
+    }
+
+    val mapping = Yaml.createYamlInput(src).readYamlMapping()
+    valueFromNode(mapping)
+  }
 
   def empty: ValueHierarchy = ValueHierarchy { _ => null }
 }

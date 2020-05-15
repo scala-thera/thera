@@ -57,5 +57,5 @@ lazy val core = (project in file("core"  ))
   .settings(
     name := "thera-core",
     libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.0",
-    libraryDependencies += "com.lihaoyi" %% "ujson" % "1.1.0",
+    libraryDependencies += "com.amihaiemil.web" % "eo-yaml" % "4.3.5",
   )
