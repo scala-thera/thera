@@ -4,35 +4,16 @@ import utest._
 
 class EvaluateSuite extends TestSuite with RuntimeSuiteHelpers {
   val tests = Tests {
-    def check(name: String): Unit = {
+    def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
       val (input, output) = readIO("/parser/input/$name")
-      assert(input == output)
+      assert(evaluate(input) == output)
     }
-    test("identity") - check("identity") {
-      thera.compile("").asString shouldBe "Hello World"
-    }
-
-    it should "variables" in {
-      thera.compile("""
-      |---
-      |name: Moon
-      |---
-      |Hello ${name}
-      |""".fmt).asString shouldBe "Hello Moon"
-    }
-
-    it should "functions" in {
-      implicit val ctx = names(
-        "isay" -> function[Text] { case Text(what) => State.pure(Text(s"I Say: $what")) }
-      )
-
-      thera.compile("""
-      |---
-      |name: Moon
-      |---
-      |${isay: Hello $name}
-      |""".fmt).asString shouldBe "I Say: Hello Moon"
-    }
+    test("identity") - check("identity")
+    test("variables") - check("variables")
+    test("functions") - check("functions", names(
+      "isay" ->
+          function[Str] { case Str(what) => Str(s"I Say: $what") }
+    ))
 
     it should "context of the caller accessible to the callee" in {
       implicit val ctx = names(
