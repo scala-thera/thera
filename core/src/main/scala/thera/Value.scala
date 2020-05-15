@@ -1,37 +1,38 @@
-package thera.runtime
+package thera
 
-import com.amihaiemil.eoyaml.Yaml
+import scala.jdk.CollectionConverters._
+import com.amihaiemil.eoyaml._
 
 /**
  * A value is data you can refer to in a template.
  */
 sealed trait Value
 
-case class Text(value: String) extends Value {
-  def +(that: Text) = Text(value + that.value)
+case class Str(value: String) extends Value {
+  def +(that: Str) = Str(value + that.value)
 }
 
-object Text {
-  def empty = Text("")
+object Str {
+  def empty = Str("")
 }
 
 case class Arr(value: List[Value]) extends Value
-case class Function(f: List[Value] => Text) extends Value with Function1[List[Value], Value] {
-  def apply(x: List[Value]): Value = f(x)
+case class Function(f: List[Value] => Str) extends Value with Function1[List[Value], Value] {
+  def apply(x: List[Value]): Str = f(x)
 }
 
 object Function {
-  def function[R1 <: Value](f: (R1) => Value)(implicit ctx: Context) = Function {
+  def function[R1 <: Value](f: (R1) => Str) = Function {
     case (r1: R1 @unchecked) :: Nil => f(r1)
     case x => throw new RuntimeException(s"Argument list $x is inapplicable to 1-ary function")
   }
 
-  def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Value)(implicit ctx: Context) = Function {
+  def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Str) = Function {
     case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: Nil => f(r1, r2)
     case x => throw new RuntimeException(s"Argument list $x is inapplicable to 2-ary function")
   }
 
-  def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3)(implicit ctx: Context) => Value) = Function {
+  def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3) => Str) = Function {
     case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: (r3: R3 @unchecked) :: Nil => f(r1, r2, r3)
     case x => throw new RuntimeException(s"Argument list $x is inapplicable to 3-ary function")
   }
@@ -60,7 +61,7 @@ trait ValueHierarchy extends Value {
    */
   final def get(path: List[String]): Value =
     if (path.isEmpty) null
-    resolvePath(path) match {
+    else resolvePath(path) match {
       case null =>
         @annotation.tailrec def resolveFromIntermediaryValueHierarchy(subpathLength: Int): Value = {
           val (subpath, leftover) = (path.take(subpathLength), path.drop(subpathLength))
@@ -124,15 +125,15 @@ object ValueHierarchy {
         }
 
       node match {
-        case x: Scalar => Text(x.value)
-        case x: YamlSequence => Arr(x.values.map(valueFromNode))
+        case x: Scalar => Str(x.value)
+        case x: YamlSequence => Arr(x.values.asScala.toList.map(valueFromNode))
         case x: YamlMapping => ValueHierarchy { path => searchInMapping(path, x) }
         case null => null
       }
     }
 
     val mapping = Yaml.createYamlInput(src).readYamlMapping()
-    valueFromNode(mapping)
+    valueFromNode(mapping).asInstanceOf[ValueHierarchy]
   }
 
   def empty: ValueHierarchy = ValueHierarchy { _ => null }

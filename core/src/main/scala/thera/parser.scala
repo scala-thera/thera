@@ -2,13 +2,11 @@ package thera
 
 import fastparse._, NoWhitespace._, Parsed.{ Failure, Success }
 
-import ast._
-
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P]: P[Function] = (header.? ~ node() ~ End).map {
-    case (Some((args, h)), t) => Function(args, h         , t)
-    case (None           , t) => Function(Nil , ValueHierarchy.empty, t)
+  def module[_: P]: P[Template] = (header.? ~ node() ~ End).map {
+    case (Some((args, h)), t) => Template(args, h         , t)
+    case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
   }
 }
 
@@ -29,7 +27,7 @@ trait HeaderParser { this: parser.type =>
 trait BodyParser { this: parser.type =>
   def node[_: P](specialChars: String = ""): P[Node] =
     leaf((specialChars ++ t.defaultSpecialChars).distinct).rep(1).map(_.toList)
-      .map(_.filter { case Text("") => false case _ => true })
+      .map(_.filter { case Str("") => false case _ => true })
       .map {
         case n :: Nil => n
         case ns       => Leafs(ns)
@@ -38,15 +36,15 @@ trait BodyParser { this: parser.type =>
   def leaf[_: P](specialChars: String): P[Leaf] =
     expr | text(specialChars)
 
-  def text[_: P](specialChars: String): P[Text] =
-    textOne(specialChars).rep(1).map { texts => texts.foldLeft(Text("")) { (accum, t) =>
-      Text(accum.value + t.value) } }
+  def text[_: P](specialChars: String): P[Str] =
+    textOne(specialChars).rep(1).map { texts => texts.foldLeft(Str("")) { (accum, t) =>
+      Str(accum.value + t.value) } }
 
   def expr[_: P]: P[Leaf] = "$" ~/ (variableSimple | "{" ~/ exprBody ~ "}")
 
   def exprBody[_: P]: P[Leaf] = call | variable
 
-  def function[_: P]: P[Function] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ node() ~ "}" ~ t.wsnl0)
+  def function[_: P]: P[Template] = ("${" ~ args ~ wsnl("=>") ~/ wsnl0Esc ~ node() ~ "}" ~ t.wsnl0)
     .map { case (args, body) => Lambda(args, body) }
 
   def call[_: P]: P[Call] = (wsnl(path) ~ ":" ~/ wsnl0Esc ~
@@ -59,13 +57,13 @@ trait BodyParser { this: parser.type =>
 }
 
 trait BodyUtilParser { this: parser.type =>
-  def textOne[_: P](specialChars: String): P[Text] = (
+  def textOne[_: P](specialChars: String): P[Str] = (
     "\\" ~/ (
       oneOf(specialChars.toList.map { c => () => LiteralStr(c.toString) }).!
     | "n".!.map { _ => "\n" }
     | ("s" ~ wsnl0Esc).map { _ => "" }
     )
-  | CharsWhile(c => !specialChars.contains(c)).! ).map(Text)
+  | CharsWhile(c => !specialChars.contains(c)).! ).map(Str)
 
   def path[_: P]: P[List[String]] = t.name.!.rep(min = 1, sep = wsnl(".")).map(_.toList)
 
