@@ -1,53 +1,78 @@
 package thera
 
-import org.scalatest._
+import utest._
 
 import parser._
 import fastparse._, Parsed.{ Success, Failure }
 
-class ParserSuite extends FunSpec with Matchers with ParserSuiteHelpers {
-  describe("Parser") {
-    toParse.foreach { name =>
-      val source = scala.io.Source.fromURL(classOf[ParserSuite].getResource(s"/example/$name.html")).mkString
+class ParserSuite extends TestSuite with ParserSuiteHelpers {
+  val tests = Tests {
+    test("Parser") {
 
-      it(s"should parse $name correctly") {
+      test("Named tests") - toParse.foreach { name =>
+        val source = scala.io.Source.fromURL(classOf[ParserSuite].getResource(s"/example/$name.html")).mkString
+
         fastparse.parse(source, module(_)) match {
-          case Success(result, _) => result.toString shouldBe fileResult(name)
-          case f: Failure => fail(f.toString)
+          case Success(result, _) => assert(result.toString == fileResult(name))
+          case f: Failure => throw new RuntimeException(f.toString)
         }
       }
-    }
 
-    it("should parse calls with trees as arguments") {
-      p("${f: a ${b} c, ${d}}", expr(_)) shouldBe "Call(List(f),List(Leafs(List(Text(a ), Variable(List(b)), Text( c))), Variable(List(d))))"
-    }
+      test("should parse calls with trees as arguments") {
+        assert(
+          p("${f: a ${b} c, ${d}}", expr(_)) ==
+           "Call(List(f),List(Leafs(List(Text(a ), Variable(List(b)), Text( c))), Variable(List(d))))"
+        )
+      }
 
-    it("should parse calls with zero arguments") {
-      p("${f:}"  , expr(_)) shouldBe "Call(List(f),List())"
-    }
+      test("should parse calls with zero arguments") {
+        assert(
+          p("${f:}"  , expr(_)) ==
+           "Call(List(f),List())"
+        )
+      }
 
-    it("should parse calls with zero arguments even if the argument list contains spaces") {
-      p("${f:  }", expr(_)) shouldBe "Call(List(f),List())"
-    }
+      test("should parse calls with zero arguments even if the argument list contains spaces") {
+        assert(
+          p("${f:  }", expr(_)) ==
+           "Call(List(f),List())"
+        )
+      }
 
-    it("should ignore the first escaped newline character") {
-      p("${f: \\\n foo}", expr(_)) shouldBe "Call(List(f),List(Text( foo)))"
-    }
+      test("should ignore the first escaped newline character") {
+        assert(
+          p("${f: \\\n foo}", expr(_)) ==
+           "Call(List(f),List(Text( foo)))"
+        )
+      }
 
-    it("should support the $name syntax") {
-      p("$foo", node()(_)) shouldBe("Variable(List(foo))")
-    }
+      test("should support the $name syntax") {
+        assert(
+          p("$foo", node()(_)) ==
+          ("Variable(List(foo))")
+        )
+      }
 
-    it("should not extend the $name syntax to field access operator") {
-      p("$foo.bar", node()(_)) shouldBe("Leafs(List(Variable(List(foo)), Text(.bar)))")
-    }
+      test("should not extend the $name syntax to field access operator") {
+        assert(
+          p("$foo.bar", node()(_)) ==
+          ("Leafs(List(Variable(List(foo)), Text(.bar)))")
+        )
+      }
 
-    it("should omit whitespaces that follow the \\s control") {
-      p("${f: foo, ${bar}\\s  }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Variable(List(bar))))")
-    }
+      test("should omit whitespaces that follow the \\s control") {
+        assert(
+          p("${f: foo, ${bar}\\s  }", expr(_)) ==
+          ("Call(List(f),List(Text(foo), Variable(List(bar))))")
+        )
+      }
 
-    it("functions may have trailing whitespaces which are ignored")  {
-      p("${f: foo, ${f => x} }", expr(_)) shouldBe("Call(List(f),List(Text(foo), Function(List(f),{\n  \n},Text(x))))")
+      test("functions may have trailing whitespaces which are ignored")  {
+        assert(
+          p("${f: foo, ${f => x} }", expr(_)) ==
+          ("Call(List(f),List(Text(foo), Function(List(f),{\n  \n},Text(x))))")
+        )
+      }
     }
   }
 }
@@ -73,13 +98,13 @@ args), Text(awesome))), Text( calls. I hope to make $1,000,000 on this stuff I c
 
 "fun_frag" -> """
 Function(List(msg, msg2),{
-  
+
 },Leafs(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
 ))))""".tail,
 
 "html-template" -> """
 Function(List(body),{
-  
+
 },Leafs(List(Text(<!DOCTYPE html>
 <html>
 <head>
@@ -89,18 +114,18 @@ Function(List(body),{
 ), Variable(List(body)), Text(
 <div>
   ), Call(List(map),List(Function(List(dummy),{
-  
+
 },Text(buf)))), Text(
 
   <h1>Our users</h1>
 
   ), Call(List(map),List(Function(List(a, c),{
-  
+
 },Variable(List(a))))), Text(
   ), Call(List(map),List(Leafs(List(Text(b ), Variable(List(a)))))), Text(
 
   ), Call(List(map),List(Variable(List(our_users)), Function(List(u),{
-  
+
 },Leafs(List(Text(
     <p>
       Name : ), Variable(List(u, name)), Text(
@@ -110,7 +135,7 @@ Function(List(body),{
     Warnings:
     <ul>
       ), Call(List(map),List(Variable(List(u, warnings)), Function(List(w),{
-  
+
 },Leafs(List(Text(        <li>), Variable(List(w)), Text(</li>
       )))))), Text(
 
@@ -129,7 +154,7 @@ Function(List(body),{
 
 "three-frag" -> """
 Function(List(),{
-  
+
 },Text(I've got three as a result!))""".tail
   )
 }
