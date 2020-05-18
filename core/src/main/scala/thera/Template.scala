@@ -29,14 +29,12 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
         s"Expected function, found string")
     }
 
-  def mkStrValue(implicit ctx: ValueHierarchy =
-    ValueHierarchy.empty): Str = Str(mkString)
-
-  def mkFunctionValue(implicit ctx: ValueHierarchy =
-    ValueHierarchy.empty): Function = {
-    val f = mkFunction
-    Function { args => Str(f(args)) }
-  }
+  def mkValue(implicit ctx: ValueHierarchy =
+    ValueHierarchy.empty): Value =
+    evaluate.template(this, ctx) match {
+      case Left(f) => Function { args => Str(f(args)) }
+      case Right(str) => Str(str)
+    }
 }
 
 sealed trait Node

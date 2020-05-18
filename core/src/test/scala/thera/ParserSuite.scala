@@ -1,6 +1,7 @@
 package thera
 
 import utest._
+import utils._
 
 import parser._
 import fastparse._, Parsed.{ Success, Failure }
@@ -53,15 +54,15 @@ class ParserSuite extends TestSuite {
 
     test("should support the $name syntax") {
       assert(
-        p("$foo", node()(_)) ==
+        p("$foo", body()(_)) ==
         ("Variable(List(foo))")
       )
     }
 
     test("should not extend the $name syntax to field access operator") {
       assert(
-        p("$foo.bar", node()(_)) ==
-        ("Leafs(List(Variable(List(foo)), Text(.bar)))")
+        p("$foo.bar", body()(_)) ==
+        ("Body(List(Variable(List(foo)), Text(.bar)))")
       )
     }
 

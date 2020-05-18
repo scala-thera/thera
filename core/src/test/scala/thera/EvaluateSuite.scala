@@ -1,5 +1,7 @@
 package thera
 
+import ValueHierarchy._, Function._
+
 import utest._
 import utils._
 
@@ -21,7 +23,7 @@ class EvaluateSuite extends TestSuite {
       ))
 
       test("templates") - check("templates/template", names(
-        "header" -> Thera(read("/templates/weekday").mkFunction)
+        "header" -> Thera(read("/templates/weekday")).mkValue
       ))
 
       test("caller-context") {
@@ -30,8 +32,8 @@ class EvaluateSuite extends TestSuite {
         val functionSrc = read("/caller-context/function")
 
         val source = Thera(input)
-        val function: Function = Thera(functionSrc).mkFunction(source.context)
-        val result: String = source.mkString(names("weekday" -> function))
+        val function = Thera(functionSrc).mkValue(source.context)
+        val result = source.mkString(names("weekday" -> function))
         assert(result == expected)
       }
     }
@@ -49,14 +51,14 @@ class EvaluateSuite extends TestSuite {
       val bodyExpected = read("/templating-capabilities/body.check")
       val templateSrc = read("/templating-capabilities/template")
 
-      val body: Template = parse(bodySrc)
-      val func: Function = parse(templateSrc).mkFunction(body.context)
-      val result: String = func(body.mkStr)
+      val body = Thera(bodySrc)
+      val func = Thera(templateSrc).mkFunction(body.context)
+      val result = func(body.mkValue :: Nil)
 
-      assert(result == expected)
+      assert(result == bodyExpected)
     }
 
-    test("Variables can evaluate to functions") in {
+    test("Variables can evaluate to functions") {
       val ctx = names(
         "header" -> Thera("""
         |---
@@ -64,7 +66,7 @@ class EvaluateSuite extends TestSuite {
         |day: Sunday
         |---
         |My name is ${name} ${surname}. Today is ${day}.
-        |""".fmt).mkFunction
+        |""".fmt).mkValue
 
       , "content" -> Thera("""
         |---
@@ -73,7 +75,7 @@ class EvaluateSuite extends TestSuite {
         |---
         |${f: Mars}
         |Hello World
-        |""".fmt).mkFunction
+        |""".fmt).mkValue
       )
 
       assert(Thera("""
@@ -92,10 +94,10 @@ class EvaluateSuite extends TestSuite {
         |---
         |Radius: ${meta.radius}
         |Atmosphere: ${meta.atmosphere}
-        |""".fmt).mkFunction
+        |""".fmt).mkValue
       )
 
-      Thera("""
+      assert(Thera("""
       |---
       |name: Moon
       |meta:
@@ -104,11 +106,11 @@ class EvaluateSuite extends TestSuite {
       |---
       |This is ${name}. Its specs:
       |${specs: ${meta}}
-      |""".fmt).mkString shouldBe """
+      |""".fmt).mkString == """
       |This is Moon. Its specs:
       |Radius: small
       |Atmosphere: nonexistent
-      |""".fmt
+      |""".fmt)
     }
 
     test("support passing lambdas into functions") {
@@ -118,7 +120,7 @@ class EvaluateSuite extends TestSuite {
         |[wrappee, wrapper]
         |---
         |Wrapped value: ${wrapper: ${wrappee}}
-        |""".fmt).mkString
+        |""".fmt).mkValue
       )
 
       assert(Thera("""
@@ -126,8 +128,7 @@ class EvaluateSuite extends TestSuite {
       |""".fmt).mkString == "Wrapped value: <h1>Hello World</h1>")
     }
 
-    test("\\n escape character" {
-      assert(Thera("Hello\\nWorld").mkString == "Hello\nWorld")
-    }
+    test("\\n escape character") - assert(
+      Thera("Hello\\nWorld").mkString == "Hello\nWorld")
   }
 }
