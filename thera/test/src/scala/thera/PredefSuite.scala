@@ -14,10 +14,7 @@ object PredefSuite extends TestSuite {
       test("basic") - assertValue(
         Thera("""
         |---
-        |keywords:
-        |  - scala
-        |  - lambda
-        |  - calculus
+        |keywords: [scala, lambda, calculus]
         |---
         |${foreachSep: ${keywords}, \,  , ${id}}
         |""".fmt).mkString, "scala,  lambda,  calculus"
@@ -25,20 +22,21 @@ object PredefSuite extends TestSuite {
 
       test("empty collection") - assertValue(
         Thera(
-          """${foreachSep: ${keywords}, \,  , ${id}}"""
-        ).mkString(names("keywords" -> Arr.empty)) , ""
+          """
+          |---
+          |keywords: []
+          |---
+          |${foreachSep: ${keywords}, \,  , ${id}}
+          |""".fmt
+        ).mkString, ""
       )
 
       test("arrays of JSON objects") - assertValue(
         Thera("""
         |---
         |keywords:
-        |  -
-        |    keyword: scala
-        |    score: "10"
-        |  -
-        |    keyword: lambda
-        |    score: "12"
+        |  - {keyword: scala , score: "10"}
+        |  - {keyword: lambda, score: "12"}
         |---
         |${foreachSep: ${keywords}, \, , ${kwrd => ${kwrd.keyword}(${kwrd.score})}}
         |""".fmt).mkString , "scala(10), lambda(12)"
@@ -48,10 +46,7 @@ object PredefSuite extends TestSuite {
     test("foreach") - assertValue(
       Thera("""
       |---
-      |keywords:
-      |  - scala
-      |  - lambda
-      |  - calculus
+      |keywords: [scala, lambda, calculus]
       |---
       |${foreach: ${keywords}, ${k => ${k},}}
       |""".fmt).mkString , "scala,lambda,calculus,"
