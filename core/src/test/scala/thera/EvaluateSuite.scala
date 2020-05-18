@@ -7,11 +7,11 @@ import utils._
 
 object EvaluateSuite extends TestSuite {
   val tests = Tests {
-    def read(name: String) = readResource("/evaluate/$name")
+    def read(name: String) = readResource(s"/evaluate/$name")
 
     test("File-defined") {
       def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
-        val (input, output) = readIO("/evaluate/$name")
+        val (input, output) = readIO(s"/evaluate/$name")
         assert(Thera(input).mkString == output)
       }
 

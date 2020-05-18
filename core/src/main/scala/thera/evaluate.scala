@@ -66,7 +66,7 @@ object evaluate {
 
   private def evaluateNode(node: Node, inFunctionCall: Boolean)(
       implicit ctx: ValueHierarchy): Value = node match {
-    case x: Str => x
+    case Text(str) => Str(str)
     case Variable(path) => ctx(path) match {
       case x: Str => x
       case x if !inFunctionCall => throw new RuntimeException(
