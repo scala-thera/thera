@@ -9,7 +9,7 @@ class ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
       val (input, output) = readIO("/parser/input/$name")
-      assert(parseTemplate(input) == output)
+      assert(Thera(input).toString == output)
     }
 
     def p[A](str: String, p: P[_] => P[A]): String =

@@ -13,4 +13,8 @@ object utils {
     val output = readResource(s"$path.check")
     input -> output
   }
+
+  implicit class StringOps(str: String) {
+    def fmt = str.tail.stripMargin.dropRight(1)
+  }
 }

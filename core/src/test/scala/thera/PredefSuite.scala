@@ -1,97 +1,87 @@
 package thera
 
-import org.scalatest._
-import predef.context
+import utest._
+import utils._
 
-class PredefSuite extends FlatSpec with Matchers with PredefSuiteHelpers {
-  "id" should "be an identity" in {
-    thera.compile("""${id: foo}""").asString shouldBe "foo"
+class PredefSuite extends TestSuite {
+  test("id") - assert(
+    Thera("""${id: foo}""").mkString == "foo"
+  )
+
+  test("foreachSep") {
+    test("basic") - assert(
+      Thera("""
+      |---
+      |keywords: [scala, lambda, calculus]
+      |---
+      |${foreachSep: ${keywords}, \,  , ${id}}
+      |""".fmt).mkString == "scala,  lambda,  calculus"
+    )
+
+    test("empty collection") – assert(
+      Thera("""
+      |---
+      |keywords: []
+      |---
+      |${foreachSep: ${keywords}, \,  , ${id}}
+      |""".fmt).mkString == ""
+    )
+
+    test("arrays of JSON objects") – assert(
+      Thera("""
+      |---
+      |keywords:
+      |  - {keyword: scala , score: "10"}
+      |  - {keyword: lambda, score: "12"}
+      |---
+      |${foreachSep: ${keywords}, \, , ${kwrd => ${kwrd.keyword}(${kwrd.score})}}
+      |""".fmt).mkString == "scala(10), lambda(12)"
+    )
   }
 
-  "foreachSep" should "work" in {
-    thera.compile("""
-    |---
-    |keywords: [scala, lambda, calculus]
-    |---
-    |${foreachSep: ${keywords}, \,  , ${id}}
-    |""".fmt).asString shouldBe "scala,  lambda,  calculus"
-  }
-
-  it should "work in case of empty collection" in {
-    thera.compile("""
-    |---
-    |keywords: []
-    |---
-    |${foreachSep: ${keywords}, \,  , ${id}}
-    |""".fmt).asString shouldBe ""
-  }
-
-  it should "work in case of arrays of JSON objects" in {
-    thera.compile("""
-    |---
-    |keywords:
-    |  - {keyword: scala , score: "10"}
-    |  - {keyword: lambda, score: "12"}
-    |---
-    |${foreachSep: ${keywords}, \, , ${kwrd => ${kwrd.keyword}(${kwrd.score})}}
-    |""".fmt).asString shouldBe "scala(10), lambda(12)"
-  }
-
-  "foreach" should "work" in {
-    thera.compile("""
+  test("foreach") - assert(
+    Thera("""
     |---
     |keywords: [scala, lambda, calculus]
     |---
     |${foreach: ${keywords}, ${k => ${k},}}
-    |""".fmt).asString shouldBe "scala,lambda,calculus,"
+    |""".fmt).mkString == "scala,lambda,calculus,"
+  )
+
+  test("if") {
+    test("if should substitute the 'if' branch if the predicate variable equals to 'true'") - assert(
+      Thera("""
+      |---
+      |stuff: true
+      |---
+      |${if: $stuff, it exists, it does not exist}
+      |""".fmt).mkString == "it exists"
+    )
+
+    test("substitute the 'else' branch if the predicate variable is 'false'") - assert(
+      Thera("""
+      |---
+      |stuff: false
+      |---
+      |${if: $stuff, it exists, it does not exist}
+      |""".fmt).mkString == "it does not exist"
+    )
   }
 
-  "if" should "substitute the 'if' branch if the predicate variable exists in the context" in {
-    thera.compile("""
-    |---
-    |stuff: I exist
-    |---
-    |${if: stuff, it exists, it does not exist}
-    |""".fmt).asString shouldBe "it exists"
-  }
+  test("outdent") {
+    test("outdent the argument text by the specified value") - assert(
+      Thera("""
+      |${outdent: 2, \
+      |    It is an amazing weather today.}
+      |""".fmt).mkString == "  It is an amazing weather today."
+    )
 
-  it should "substitute the 'else' branch if the predicate variable does not exists in the context" in {
-    thera.compile("""
-    |---
-    |stuff: I exist
-    |---
-    |${if: foo, it exists, it does not exist}
-    |""".fmt).asString shouldBe "it does not exist"
-  }
-
-  it should "work for nested variables" in {
-    thera.compile("""
-    |---
-    |foo:
-    |  bar: I exist
-    |---
-    |${if: foo.bar, it exists, it does not exist}
-    |""".fmt).asString shouldBe "it exists"
-  }
-
-  "outdent" should "outdent the argument text by the specified value" in {
-    thera.compile("""
-    |${outdent: 2, \
-    |    It is an amazing weather today.}
-    |""".fmt).asString shouldBe "  It is an amazing weather today."
-  }
-
-  it should "have a cumulative effect" in {
-    thera.compile("""
-    |${outdent: 2,
-    |  ${outdent: 2, \
-    |    It is an amazing weather today.}}
-    |""".fmt).asString shouldBe "It is an amazing weather today."
-  }
-}
-
-trait PredefSuiteHelpers {
-  implicit class StringOps(str: String) {
-    def fmt = str.tail.stripMargin.dropRight(1)
+    test("have a cumulative effect" - assert(
+      Thera("""
+      |${outdent: 2,
+      |  ${outdent: 2, \
+      |    It is an amazing weather today.}}
+      |""".fmt).mkString == "It is an amazing weather today."
+    )
   }
 }

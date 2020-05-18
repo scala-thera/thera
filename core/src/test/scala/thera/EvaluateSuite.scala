@@ -1,8 +1,9 @@
 package thera
 
 import utest._
+import utils._
 
-class EvaluateSuite extends TestSuite with EvaluateSuiteHelpers {
+class EvaluateSuite extends TestSuite {
   val tests = Tests {
     def read(name: String) = readResource("/evaluate/$name")
 
@@ -128,11 +129,5 @@ class EvaluateSuite extends TestSuite with EvaluateSuiteHelpers {
     test("\\n escape character" {
       assert(Thera("Hello\\nWorld").mkString == "Hello\nWorld")
     }
-  }
-}
-
-trait EvaluateSuiteHelpers {
-  implicit class StringOps(str: String) {
-    def fmt = str.tail.stripMargin.dropRight(1)
   }
 }
