@@ -1,0 +1,3 @@
+Template(List(),<valuehierarchy>,Body(List(Text(I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-frag)), Text(. I can also do ), Call(List(fun_frag),List(Body(List(Text(simple))), Body(List(Text(nice))))), Text( and ), Call(List(fun_frag),List(Body(List(Text(complex ,
+args))), Body(List(Text(awesome))))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Body(List(Call(List(fun_frag),List(Body(List(Text($1,000,000))), Body(List(Text(good))))))), Body(List(Text(recursive))))), Text(. We can also escape with "\".
+))))

@@ -1,0 +1,38 @@
+Template(List(body),<valuehierarchy>,Body(List(Text(<!DOCTYPE html>
+<html>
+<head>
+  <title>), Variable(List(title)), Text(</title>
+</head>
+<body> thera.ParserSuite 0s
+), Variable(List(body)), Text(
+<div>
+  ), Call(List(map),List(Lambda(List(dummy),Body(List(Text(buf)))))), Text(
+
+  <h1>Our users</h1>
+
+  ), Call(List(map),List(Lambda(List(a, c),Body(List(Variable(List(a))))))), Text(
+  ), Call(List(map),List(Body(List(Text(b ), Variable(List(a)))))), Text(
+
+  ), Call(List(map),List(Body(List(Variable(List(our_users)))), Lambda(List(u),Body(List(Text(
+    <p>
+      Name : ), Variable(List(u, name)), Text(
+      Email: ), Variable(List(u, email)), Text(
+    </p>
+
+    Warnings:
+    <ul>
+      ), Call(List(map),List(Body(List(Variable(List(u, warnings)))), Lambda(List(w),Body(List(Text(        <li>), Variable(List(w)), Text(</li>
+      )))))), Text(
+
+    </ul>
+
+    Btw here's how a smiley mustache is drawn: }
+
+    And here's some Scala code of that user:
+
+    ```{.scala file="foo.scala"}
+    ```
+  )))))), Text(
+</div>
+</body>
+</html>))))

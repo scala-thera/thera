@@ -1,0 +1,5 @@
+---
+[name]
+day: Sunday
+---
+My name is ${name}. Today is ${day}.
