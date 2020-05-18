@@ -2,158 +2,99 @@ package thera
 
 import utest._
 
-class EvaluateSuite extends TestSuite {
+class EvaluateSuite extends TestSuite with EvaluateSuiteHelpers {
   val tests = Tests {
-    def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
-      val (input, output) = readIO("/parser/input/$name")
-      assert(evaluate(input) == output)
-    }
-    test("identity") - check("identity")
-    test("variables") - check("variables")
-    test("functions") - check("functions", names(
-      "isay" ->
-          function[Str] { case Str(what) => Str(s"I Say: $what") }
-    ))
+    def read(name: String) = readResource("/evaluate/$name")
 
-    it should "context of the caller accessible to the callee" in {
-      implicit val ctx = names(
-        "header" -> thera.compile("""
-          |My name is ${name}.
-          |""".fmt).value
-      )
+    test("File-defined") {
+      def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
+        val (input, output) = readIO("/evaluate/$name")
+        assert(Thera(input).mkString == output)
+      }
 
-      thera.compile("""
-      |---
-      |name: Jupiter
-      |---
-      |${header:}
-      |Hello World
-      |""".fmt).asString shouldBe """
-      |My name is Jupiter.
-      |Hello World
-      |""".fmt
-    }
+      test("identity") - check("identity")
+      test("variables") - check("variables")
+      test("functions") - check("functions", names(
+        "isay" ->
+            function[Str] { case Str(what) => Str(s"I Say: $what") }
+      ))
 
-    it should "have the callee context accessible from the callee" in {
-      implicit val ctx = names(
-        "header" -> thera.compile("""
-        |---
-        |day: Sunday
-        |---
-        |My name is ${name}. Today is ${day}.
-        |""".fmt).value
-      )
+      test("templates") - check("templates/template", names(
+        "header" -> Thera(read("/templates/weekday").mkFunction)
+      ))
 
-      thera.compile("""
-      |---
-      |name: Jupiter
-      |---
-      |${header:}
-      |Hello World
-      |""".fmt).asString shouldBe """
-      |My name is Jupiter. Today is Sunday.
-      |Hello World
-      |""".fmt
+      test("caller-context") {
+        val input = read("/caller-context/source")
+        val expected = read("/caller-context/source.check")
+        val functionSrc = read("/caller-context/function")
+
+        val source = Thera(input)
+        val function: Function = Thera(functionSrc).mkFunction(source.context)
+        val result: String = source.mkString(names("weekday" -> function))
+        assert(result == expected)
+      }
     }
 
-    it should "be possible to call a fragment with arguments" in {
-      implicit val ctx = names(
-        "header" -> thera.compile("""
+    test("wrong-number-of-params") {
+      val f = function[Value] { _ => Str("") }
+      val e = intercept[RuntimeException] {
+        Thera("${f: a, b}").mkString(names("f" -> f))
+      }
+      assert(e.getMessage == "Too many arguments for the function call: found 2, expected 1")
+    }
+
+    test("templating capabilities") {
+      val bodySrc = read("/templating-capabilities/body")
+      val bodyExpected = read("/templating-capabilities/body.check")
+      val templateSrc = read("/templating-capabilities/template")
+
+      val body: Template = parse(bodySrc)
+      val func: Function = parse(templateSrc).mkFunction(body.context)
+      val result: String = func(body.mkStr)
+
+      assert(result == expected)
+    }
+
+    test("Variables can evaluate to functions") in {
+      val ctx = names(
+        "header" -> Thera("""
         |---
         |[surname]
         |day: Sunday
         |---
         |My name is ${name} ${surname}. Today is ${day}.
-        |""".fmt).value
-      )
+        |""".fmt).mkFunction
 
-      thera.compile("""
-      |---
-      |name: Jupiter
-      |---
-      |${header: Mars}
-      |Hello World
-      |""".fmt).asString shouldBe """
-      |My name is Jupiter Mars. Today is Sunday.
-      |Hello World
-      |""".fmt
-    }
-
-    it should "produce an exception when trying to call a function with wrong number of arguments" in {
-      implicit val ctx = names(
-        "header" -> thera.compile("""
-        |---
-        |[surname]
-        |day: Sunday
-        |---
-        |My name is ${name} ${surname}.
-        |""".fmt).value
-      )
-
-      the [RuntimeException] thrownBy {
-        thera.compile("""
-        |---
-        |name: Jupiter
-        |---
-        |${header:}
-        |Hello World
-        |""".fmt).asString
-      } should have message "Symbol not found: surname"
-    }
-
-    it should "templating capabilities" in {
-      val tml = thera.compile("""
-      |---
-      |[body]
-      |---
-      |<h1>${body}</h1>
-      |""".fmt)
-
-      (thera.compile("""
-      |Hello World
-      |""".fmt) >>= tml).asString shouldBe "<h1>Hello World</h1>"
-    }
-
-    it should "variables can evaluate to functions" in {
-      implicit val ctx = names(
-        "header" -> thera.compile("""
-        |---
-        |[surname]
-        |day: Sunday
-        |---
-        |My name is ${name} ${surname}. Today is ${day}.
-        |""".fmt).value
-
-      , "content" -> thera.compile("""
+      , "content" -> Thera("""
         |---
         |[f]
         |name: Jupiter
         |---
         |${f: Mars}
         |Hello World
-        |""".fmt).value
+        |""".fmt).mkFunction
       )
 
-      thera.compile("""
+      assert(Thera("""
       |${content: ${header}}
-      |""".fmt).asString shouldBe """
+      |""".fmt).mkString(ctx) == """
       |My name is Jupiter Mars. Today is Sunday.
       |Hello World
-      |""".fmt
+      |""".fmt)
     }
 
-    it should "possibility of variables evaluated to JSON" in {
+    test("possibility of variables evaluated to JSON") {
       implicit val ctx = names(
-        "specs" -> thera.compile("""
+        "specs" -> Thera("""
         |---
         |[meta]
         |---
         |Radius: ${meta.radius}
         |Atmosphere: ${meta.atmosphere}
-        |""".fmt).value
+        |""".fmt).mkFunction
       )
 
-      thera.compile("""
+      Thera("""
       |---
       |name: Moon
       |meta:
@@ -162,35 +103,36 @@ class EvaluateSuite extends TestSuite {
       |---
       |This is ${name}. Its specs:
       |${specs: ${meta}}
-      |""".fmt).asString shouldBe """
+      |""".fmt).mkString shouldBe """
       |This is Moon. Its specs:
       |Radius: small
       |Atmosphere: nonexistent
       |""".fmt
     }
 
-    it should "support passing lambdas into functions" in {
+    test("support passing lambdas into functions") {
       implicit val ctx = names(
-        "wrap" -> thera.compile("""
+        "wrap" -> Thera("""
         |---
         |[wrappee, wrapper]
         |---
         |Wrapped value: ${wrapper: ${wrappee}}
-        |""".fmt).value
+        |""".fmt).mkString
       )
 
-      thera.compile("""
+      assert(Thera("""
       |${wrap: Hello World, ${x => <h1>${x}</h1>}}
-      |""".fmt).asString shouldBe "Wrapped value: <h1>Hello World</h1>"
+      |""".fmt).mkString == "Wrapped value: <h1>Hello World</h1>")
     }
 
-    it should "support filtering" in {
-      thera.compile("Hello World").mapStr { s => s"<h1>$s</h1>" }
-        .asString shouldBe "<h1>Hello World</h1>"
+    test("\\n escape character" {
+      assert(Thera("Hello\\nWorld").mkString == "Hello\nWorld")
     }
+  }
+}
 
-    "Escape characters" should "include \\n" in {
-      thera.compile("Hello\\nWorld").asString shouldBe "Hello\nWorld"
-    }
+trait EvaluateSuiteHelpers {
+  implicit class StringOps(str: String) {
+    def fmt = str.tail.stripMargin.dropRight(1)
   }
 }

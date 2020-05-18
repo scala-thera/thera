@@ -1,0 +1,5 @@
+---
+name: Jupiter
+---
+${weekday:}
+Hello World

@@ -12,7 +12,7 @@ package thera
  * @param body – the body of the template. Can refer to the variables and
  *               templates defined in predefinedVars and bound to argNames.
  */
-case class Template(argNames: List[String], templateContext: ValueHierarchy, body: Body)
+case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
 
 sealed trait Node
 case class Text(value: String) extends Node

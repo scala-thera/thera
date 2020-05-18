@@ -9,10 +9,7 @@ class ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
       val (input, output) = readIO("/parser/input/$name")
-      fastparse.parse(input, module(_)) match {
-        case Success(result, _) => assert(result.toString == output)
-        case f: Failure => throw new RuntimeException(f.toString)
-      }
+      assert(parseTemplate(input) == output)
     }
 
     def p[A](str: String, p: P[_] => P[A]): String =
