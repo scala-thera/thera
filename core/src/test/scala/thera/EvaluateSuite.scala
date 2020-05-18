@@ -5,7 +5,7 @@ import ValueHierarchy._, Function._
 import utest._
 import utils._
 
-class EvaluateSuite extends TestSuite {
+object EvaluateSuite extends TestSuite {
   val tests = Tests {
     def read(name: String) = readResource("/evaluate/$name")
 

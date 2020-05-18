@@ -3,7 +3,7 @@ package thera
 import utest._
 import utils._
 
-class PredefSuite extends TestSuite {
+object PredefSuite extends TestSuite {
   val tests = Tests {
     test("id") - assert(
       Thera("""${id: foo}""").mkString == "foo"

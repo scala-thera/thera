@@ -6,7 +6,7 @@ import utils._
 import parser._
 import fastparse._, Parsed.{ Success, Failure }
 
-class ParserSuite extends TestSuite {
+object ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
       val (input, output) = readIO("/parser/input/$name")
