@@ -42,7 +42,7 @@ are as follows:
   the resulting Str.
 */
 object evaluate {
-  def apply(tmlSource: String, ctxInit: ValueHierarchy =
+  def string(tmlSource: String, ctxInit: ValueHierarchy =
       ValueHierarchy.empty): Either[List[Value] => String, String] =
     fastparse.parse(tmlSource, module(_)) match {
       case Success(result, _) => evaluate.template(result, ctxInit)

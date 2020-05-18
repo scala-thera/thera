@@ -12,7 +12,30 @@ package thera
  * @param body – the body of the template. Can refer to the variables and
  *               templates defined in predefinedVars and bound to argNames.
  */
-case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
+case class Template(argNames: List[String], context: ValueHierarchy, body: Body) {
+  def mkString(implicit ctx: ValueHierarchy =
+    ValueHierarchy.empty): String =
+    evaluate(this, ctx) match {
+      case Right(str) => str
+      case Left(_) => fail(s"Expected string, found function")
+    }
+
+  def mkFunction(implicit ctx: ValueHierarchy =
+    ValueHierarchy.empty): List[Value] => String =
+    evaluate(this, ctx) match {
+      case Left(f) => f
+      case Right(_) => fail(s"Expected function, found string")
+    }
+
+  def mkStrValue(implicit ctx: ValueHierarchy =
+    ValueHierarchy.empty): Str = Str(mkString)
+
+  def mkFunctionValue(implicit ctx: ValueHierarchy =
+    ValueHierarchy.empty): Function = {
+    val f = mkFunction
+    Function { args => Str(f(args)) }
+  }
+}
 
 sealed trait Node
 case class Text(value: String) extends Node
