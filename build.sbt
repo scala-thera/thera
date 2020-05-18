@@ -36,27 +36,17 @@ lazy val publishingSettings = List(
   Global / PgpKeys.gpgCommand := (baseDirectory.value / "project/scripts/gpg.sh").getAbsolutePath,
 )
 
-
-lazy val commonSettings = Seq(
-  organization := "com.akmetiuk",
-  version      := "0.2.0",
-  scalaVersion := "2.13.2",
-
-  libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.4" % "test",
-  testFrameworks += new TestFramework("utest.runner.Framework"),
-)
-
-lazy val root = (project in file("."))
-  .aggregate(core)
+lazy val thera = (project in file("."  ))
+  .settings(publishingSettings)
   .settings(
-    publish   := {}
-  , publishTo := None
-  )
+    name := "thera",
+    organization := "com.akmetiuk",
+    version      := "0.2.0",
+    scalaVersion := "2.13.2",
 
-lazy val core = (project in file("core"  ))
-  .settings(commonSettings ++ publishingSettings)
-  .settings(
-    name := "thera-core",
     libraryDependencies += "com.lihaoyi" %% "fastparse" % "2.3.0",
     libraryDependencies += "com.amihaiemil.web" % "eo-yaml" % "4.3.5",
+    libraryDependencies += "com.lihaoyi" %% "utest" % "0.7.4" % "test",
+
+    testFrameworks += new TestFramework("utest.runner.Framework"),
   )

@@ -26,7 +26,7 @@ trait HeaderParser { this: parser.type =>
 
 trait BodyParser { this: parser.type =>
   def body[_: P](specialChars: String = ""): P[Body] =
-    node((specialChars ++ t.defaultSpecialChars).distinct).rep(1)
+    node((specialChars ++ t.defaultSpecialChars).toSeq.distinct.unwrap).rep(1)
       .map(_.toList.filter { case Text("") => false case _ => true })
       .map(ns => Body(ns))
 
