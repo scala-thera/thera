@@ -33,4 +33,4 @@ jobs:
           restore-keys: ${{ runner.os }}-general-
 
       - name: Test
-        run: sbt test
+        run: ./mill thera.test
