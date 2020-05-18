@@ -1,3 +1,1 @@
-Function(List(),{
-
-},Text(I've got three as a result!))
+Template(List(),<valuehierarchy>,Body(List(Text(I've got three as a result!))))

@@ -1,27 +1,19 @@
-Function(List(body),{
-
-},Leafs(List(Text(<!DOCTYPE html>
+Template(List(body),<valuehierarchy>,Body(List(Text(<!DOCTYPE html>
 <html>
 <head>
   <title>), Variable(List(title)), Text(</title>
 </head>
-<body>
+<body> thera.ParserSuite 0s
 ), Variable(List(body)), Text(
 <div>
-  ), Call(List(map),List(Function(List(dummy),{
-
-},Text(buf)))), Text(
+  ), Call(List(map),List(Lambda(List(dummy),Body(List(Text(buf)))))), Text(
 
   <h1>Our users</h1>
 
-  ), Call(List(map),List(Function(List(a, c),{
+  ), Call(List(map),List(Lambda(List(a, c),Body(List(Variable(List(a))))))), Text(
+  ), Call(List(map),List(Body(List(Text(b ), Variable(List(a)))))), Text(
 
-},Variable(List(a))))), Text(
-  ), Call(List(map),List(Leafs(List(Text(b ), Variable(List(a)))))), Text(
-
-  ), Call(List(map),List(Variable(List(our_users)), Function(List(u),{
-
-},Leafs(List(Text(
+  ), Call(List(map),List(Body(List(Variable(List(our_users)))), Lambda(List(u),Body(List(Text(
     <p>
       Name : ), Variable(List(u, name)), Text(
       Email: ), Variable(List(u, email)), Text(
@@ -29,9 +21,7 @@ Function(List(body),{
 
     Warnings:
     <ul>
-      ), Call(List(map),List(Variable(List(u, warnings)), Function(List(w),{
-
-},Leafs(List(Text(        <li>), Variable(List(w)), Text(</li>
+      ), Call(List(map),List(Body(List(Variable(List(u, warnings)))), Lambda(List(w),Body(List(Text(        <li>), Variable(List(w)), Text(</li>
       )))))), Text(
 
     </ul>
