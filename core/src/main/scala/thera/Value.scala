@@ -89,8 +89,8 @@ trait ValueHierarchy extends Value {
    * A name conflict is defined as a path that resolves to a Value in both hierarchies.
    */
   def +(other: ValueHierarchy): ValueHierarchy = ValueHierarchy { name =>
-    other(name) match {
-      case null => this(name)
+    other.get(name) match {
+      case null => this.get(name)
       case x => x
     }
   }

@@ -11,8 +11,10 @@ object EvaluateSuite extends TestSuite {
 
     test("File-defined") {
       def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
+        implicit val c = ctx
         val (input, output) = readIO(s"/evaluate/$name")
-        assert(Thera(input).mkString == output)
+        val result = Thera(input).mkString(c)
+        assert(result == output)
       }
 
       test("identity") - check("identity")
