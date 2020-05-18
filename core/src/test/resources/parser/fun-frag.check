@@ -1,4 +1,2 @@
-Function(List(msg, msg2),{
-
-},Leafs(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
+Template(List(msg, msg2),<valuehierarchy>,Body(List(Text(The very ), Variable(List(msg2)), Text( ), Variable(List(msg)), Text(
 ))))

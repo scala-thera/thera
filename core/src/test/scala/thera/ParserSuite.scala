@@ -9,8 +9,9 @@ import fastparse._, Parsed.{ Success, Failure }
 object ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
-      val (input, output) = readIO("/parser/input/$name")
-      assert(Thera(input).toString == output)
+      val (input, expected) = readIO(s"/parser/$name")
+      val result = Thera(input).toString
+      assert(result == expected)
     }
 
     def p[A](str: String, p: P[_] => P[A]): String =

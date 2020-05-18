@@ -94,6 +94,8 @@ trait ValueHierarchy extends Value {
       case x => x
     }
   }
+
+  override def toString = "<valuehierarchy>"
 }
 
 object ValueHierarchy {
