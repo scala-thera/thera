@@ -8,8 +8,6 @@ import utils._
 object EvaluateSuite extends TestSuite {
   val tests = Tests {
     def read(name: String) = readResource(s"/evaluate/$name")
-    def assertValue(actual: String, expected: String) =
-      assert(actual == expected)
 
     test("File-defined") {
       def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {

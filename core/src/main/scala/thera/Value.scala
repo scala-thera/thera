@@ -17,6 +17,10 @@ object Str {
 }
 
 case class Arr(value: List[Value]) extends Value
+object Arr {
+  def empty = Arr(Nil)
+}
+
 case class Function(f: List[Value] => Str) extends Value with Function1[List[Value], Value] {
   def apply(x: List[Value]): Str = f(x)
 }
