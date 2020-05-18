@@ -49,6 +49,17 @@ object ValueSuite extends TestSuite {
           val expected = Arr.empty
           assert(res == expected)
         }
+
+        test("arrays of json objects") {
+          val vh = ValueHierarchy.yaml("""
+            |stuff: [{ "foo": "bar" }]
+          """.stripMargin)
+          val res =
+            vh("stuff" :: Nil).asArr.value
+            .head.asValueHierarchy("foo" :: Nil)
+          val expected = Str("bar")
+          assert(res == expected)
+        }
       }
     }
   }

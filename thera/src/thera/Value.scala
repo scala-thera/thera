@@ -1,12 +1,17 @@
 package thera
 
 import scala.jdk.CollectionConverters._
-import com.amihaiemil.eoyaml._
+import io.circe._
 
 /**
  * A value is data you can refer to in a template.
  */
-sealed trait Value
+sealed trait Value {
+  def asStr = asInstanceOf[Str]
+  def asArr = asInstanceOf[Arr]
+  def asFunction = asInstanceOf[Function]
+  def asValueHierarchy = asInstanceOf[ValueHierarchy]
+}
 
 case class Str(value: String) extends Value {
   def +(that: Str) = Str(value + that.value)
@@ -118,27 +123,32 @@ object ValueHierarchy {
     names(ns.toMap)
 
   def yaml(src: String): ValueHierarchy = {
-    def valueFromNode(node: YamlNode): Value = {
+    def valueFromNode(node: Json): Value = {
       @annotation.tailrec
-      def searchInMapping(path: List[String], m: YamlMapping): Value =
+      def searchInMapping(path: List[String], m: JsonObject): Value =
         path match {
           case Nil => null
-          case name :: Nil => valueFromNode(m.value(name))
-          case name :: rest => m.value(name) match {
-            case x: YamlMapping => searchInMapping(rest, x)
+          case name :: Nil => valueFromNode(m(name).orNull)
+          case name :: rest => m(name).orNull match {
+            case x if x.isObject => searchInMapping(rest, x.asObject.orNull)
             case _ => null
           }
         }
 
       node match {
-        case x: Scalar => Str(x.value)
-        case x: YamlSequence => Arr(x.values.asScala.toList.map(valueFromNode))
-        case x: YamlMapping => ValueHierarchy { path => searchInMapping(path, x) }
         case null => null
+
+        case x if x.isString => Str(x.asString.get)
+        case x if x.isBoolean => Str(x.asBoolean.get.toString)
+        case x if x.isNumber => Str(x.asNumber.get.toInt.get.toString)
+        case x if x.isNull => null
+
+        case x if x.isArray => Arr(x.asArray.get.toList.map(valueFromNode))
+        case x if x.isObject => ValueHierarchy { path => searchInMapping(path, x.asObject.get) }
       }
     }
 
-    val mapping = Yaml.createYamlInput(src).readYamlMapping()
+    val mapping: Json = io.circe.yaml.parser.parse(src).right.get
     valueFromNode(mapping).asInstanceOf[ValueHierarchy]
   }
 

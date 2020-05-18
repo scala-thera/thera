@@ -7,7 +7,11 @@ object thera extends ScalaModule with PublishModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::fastparse:2.3.0",
-    ivy"com.amihaiemil.web:eo-yaml:4.3.5",
+
+    ivy"io.circe::circe-core:0.13.0",
+    ivy"io.circe::circe-generic:0.13.0",
+    ivy"io.circe::circe-parser:0.13.0",
+    ivy"io.circe::circe-yaml:0.13.0",
   )
 
   object test extends Tests {
