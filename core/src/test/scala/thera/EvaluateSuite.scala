@@ -12,9 +12,12 @@ object EvaluateSuite extends TestSuite {
     test("File-defined") {
       def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
         implicit val c = ctx
-        val (input, output) = readIO(s"/evaluate/$name")
+        val (input, expected) = readIO(s"/evaluate/$name")
         val result = Thera(input).mkString(c)
-        assert(result == output)
+        if (result != expected) {
+          println(s"Result:\n$result\n===\nExpected:\n$expected")
+          assert(false)
+        }
       }
 
       test("identity") - check("identity")
