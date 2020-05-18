@@ -51,7 +51,7 @@ object evaluate {
 
   def template(tml: Template, ctxInit: ValueHierarchy =
       ValueHierarchy.empty): Either[List[Value] => String, String] = {
-    var ctx = predef.context + ctxInit + tml.templateContext
+    var ctx = predef.context + ctxInit + tml.context
     if (tml.argNames.nonEmpty) Left( { argValues =>
       ctx = ctx + ValueHierarchy.names(tml.argNames.zip(argValues).toMap)
       evaluateBody(tml.body)(ctx)

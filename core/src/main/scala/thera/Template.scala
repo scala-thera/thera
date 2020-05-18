@@ -15,16 +15,18 @@ package thera
 case class Template(argNames: List[String], context: ValueHierarchy, body: Body) {
   def mkString(implicit ctx: ValueHierarchy =
     ValueHierarchy.empty): String =
-    evaluate(this, ctx) match {
+    evaluate.template(this, ctx) match {
       case Right(str) => str
-      case Left(_) => fail(s"Expected string, found function")
+      case Left(_) => throw new RuntimeException(
+        s"Expected string, found function")
     }
 
   def mkFunction(implicit ctx: ValueHierarchy =
     ValueHierarchy.empty): List[Value] => String =
-    evaluate(this, ctx) match {
+    evaluate.template(this, ctx) match {
       case Left(f) => f
-      case Right(_) => fail(s"Expected function, found string")
+      case Right(_) => throw new RuntimeException(
+        s"Expected function, found string")
     }
 
   def mkStrValue(implicit ctx: ValueHierarchy =
