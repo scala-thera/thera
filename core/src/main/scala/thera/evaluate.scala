@@ -72,6 +72,7 @@ object evaluate {
       case x if !inFunctionCall => throw new RuntimeException(
         s"Variables outside function calls can only resolve to text. " +
         s"Variable ${path.mkString(".")} was resolved to $x")
+      case x => x
     }
     case Call(path, argsNodes) =>
       val f: Function = ctx(path) match {

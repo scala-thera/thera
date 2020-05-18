@@ -8,6 +8,8 @@ import utils._
 object EvaluateSuite extends TestSuite {
   val tests = Tests {
     def read(name: String) = readResource(s"/evaluate/$name")
+    def assertValue(actual: String, expected: String) =
+      assert(actual == expected)
 
     test("File-defined") {
       def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
@@ -48,7 +50,7 @@ object EvaluateSuite extends TestSuite {
       val e = intercept[RuntimeException] {
         Thera("${f: a, b}").mkString(names("f" -> f))
       }
-      assert(e.getMessage == "Too many arguments for the function call: found 2, expected 1")
+      assert(e.getMessage == "Argument list List(Str(a), Str(b)) is inapplicable to 1-ary function")
     }
 
     test("templating capabilities") {
@@ -67,7 +69,7 @@ object EvaluateSuite extends TestSuite {
       val ctx = names(
         "header" -> Thera("""
         |---
-        |[surname]
+        |[name, surname]
         |day: Sunday
         |---
         |My name is ${name} ${surname}. Today is ${day}.
@@ -78,14 +80,14 @@ object EvaluateSuite extends TestSuite {
         |[f]
         |name: Jupiter
         |---
-        |${f: Mars}
+        |${f: $name, Mars}
         |Hello World
         |""".fmt).mkValue
       )
 
-      assert(Thera("""
+      assertValue(Thera("""
       |${content: ${header}}
-      |""".fmt).mkString(ctx) == """
+      |""".fmt).mkString(ctx), """
       |My name is Jupiter Mars. Today is Sunday.
       |Hello World
       |""".fmt)
