@@ -92,6 +92,12 @@ trait ValueHierarchy extends Value {
     case x => x
   }
 
+  final def apply(path: String): Value =
+    apply(path.split('.').toList)
+
+  final def get(path: String): Value =
+    get(path.split('.').toList)
+
   /**
    * Creates a combined ValueHierarchy out of `this` and `other` ValueHierarchy.
    * In case of a name conflict, `other` has precedence during value resolution.

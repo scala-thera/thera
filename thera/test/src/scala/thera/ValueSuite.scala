@@ -9,11 +9,14 @@ object ValueSuite extends TestSuite {
     test("ValueHierarchy") {
       val ctx1 = ValueHierarchy.names(
         "a" -> Str("foo"),
-        "b" -> Str("bar")
+        "b" -> Str("bar"),
       )
       val ctx2 = ValueHierarchy.names(
         "c" -> Str("aaa"),
-        "d" -> Arr(Str("1") :: Str("2") :: Str("3") :: Nil)
+        "d" -> Arr(Str("1") :: Str("2") :: Str("3") :: Nil),
+        "e" -> ValueHierarchy.names(
+          "a" -> Str("e.aaa")
+        )
       )
       val ctx3 = ctx1 + ctx2
 
@@ -21,7 +24,10 @@ object ValueSuite extends TestSuite {
         case Str(str) => assert(str == e)
       }
 
-      test("lookup") - check(ctx1("a" :: Nil), "foo")
+      test("lookup") {
+        test - check(ctx1("a" :: Nil), "foo")
+        test - check(ctx2("e.a"), "e.aaa")
+      }
       test("composition") {
         check(ctx3("a" :: Nil), "foo")
         check(ctx3("c" :: Nil), "aaa")
