@@ -2,7 +2,7 @@ import mill._, scalalib._, publish._
 
 object thera extends ScalaModule with PublishModule {
   def scalaVersion = "2.13.2"
-  def publishVersion = "0.2.0"
+  def publishVersion = "0.2.0-M1"
   def artifactName = "thera"
 
   def ivyDeps = Agg(
