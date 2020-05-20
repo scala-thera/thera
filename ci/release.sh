@@ -1,9 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 
-echo $PGP_SECRET | base64 --decode > gpg_key
-gpg --import gpg_key
-rm gpg_key
+echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
 
 ./mill thera.publish \
   --sonatypeCreds $SONATYPE_USER:$SONATYPE_PASSWORD \
