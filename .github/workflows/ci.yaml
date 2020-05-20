@@ -34,3 +34,55 @@ jobs:
 
       - name: Test
         run: ./mill thera.test
+
+  release:
+    runs-on: ubuntu-latest
+    container: hseeberger/scala-sbt:8u252_1.3.10_2.13.2
+    if: github.event_name == 'push' &&
+        startsWith(github.event.ref, 'refs/tags/')
+
+    needs: [test]
+    env:
+      PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+      PGP_SECRET: ${{ secrets.PGP_SECRET }}
+      SONATYPE_PW: ${{ secrets.SONATYPE_PW }}
+      SONATYPE_USER: ${{ secrets.SONATYPE_USER }}
+
+    steps:
+      - name: Git Checkout
+        uses: actions/checkout@v2
+
+      - name: Cache Ivy
+        uses: actions/cache@v1.1.2
+        with:
+          path: /root/.ivy2/cache
+          key: ${{ runner.os }}-ivy-${{ hashFiles('**/*.sc') }}
+          restore-keys: ${{ runner.os }}-ivy-
+
+      - name: Cache SBT
+        uses: actions/cache@v1.1.2
+        with:
+          path: /root/.sbt
+          key: ${{ runner.os }}-sbt-${{ hashFiles('project/**') }}
+          restore-keys: ${{ runner.os }}-sbt-
+
+      - name: Cache Coursier and Mill
+        uses: actions/cache@v1.1.2
+        with:
+          path: /root/.cache
+          key: ${{ runner.os }}-general-${{ hashFiles('**/*.sc') }}
+          restore-keys: ${{ runner.os }}-general-
+
+      - name: Sonatype Release
+        run: ./ci/release.sh
+
+      - name: GitHub Release
+        uses: actions/create-release@latest
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body:
+          draft: false
+          prerelease: false
