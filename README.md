@@ -1,5 +1,5 @@
 # Thera - the templating engine for Scala
-![CI](https://github.com/anatoliykmetyuk/thera/workflows/CI/badge.svg)[![Gitter](https://badges.gitter.im/akmetiuk/thera.svg)](https://gitter.im/akmetiuk/thera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+![CI](https://github.com/anatoliykmetyuk/thera/workflows/CI/badge.svg) [![Gitter](https://badges.gitter.im/akmetiuk/thera.svg)](https://gitter.im/akmetiuk/thera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ```scala
 import thera._
