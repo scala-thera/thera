@@ -26,7 +26,6 @@ object ParserSuite extends TestSuite {
       // test("html-template") - check("html-template")
       test("index") - check("index")
       test("tree-frag") - check("tree-frag")
-      test("braces") - check("braces")
     }
 
     test("tree-args") {

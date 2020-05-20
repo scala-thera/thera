@@ -5,7 +5,7 @@ import ValueHierarchy._, Function._
 import utest._
 import utils._
 
-object EvaluateSuite extends TestSuite {
+object TheraSuite extends TestSuite {
   val tests = Tests {
     def read(name: String) = readResource(s"/evaluate/$name")
 
@@ -135,5 +135,76 @@ object EvaluateSuite extends TestSuite {
 
     test("\\n escape character") - assert(
       Thera("Hello\\nWorld").mkString == "Hello\nWorld")
+
+    test("Thera.split") {
+      val output = Thera.split("""
+      |---
+      |name: Moon
+      |meta:
+      |  radius: small
+      |  atmosphere: nonexistent
+      |---
+      |This is ${name}. Its specs:
+      |${specs: ${meta}}
+      |""".fmt)
+      val expected = ("""
+      |name: Moon
+      |meta:
+      |  radius: small
+      |  atmosphere: nonexistent
+      |""".fmt, """
+      |This is ${name}. Its specs:
+      |${specs: ${meta}}
+      |""".fmt)
+      assert(output == expected)
+    }
+
+    test("Thera.join") {
+      assert(Thera.join("""
+      |name: Moon
+      |meta:
+      |  radius: small
+      |  atmosphere: nonexistent
+      |""".fmt, """
+      |This is ${name}. Its specs:
+      |${specs: ${meta}}
+      |""".fmt) == """
+      |---
+      |name: Moon
+      |meta:
+      |  radius: small
+      |  atmosphere: nonexistent
+      |---
+      |This is ${name}. Its specs:
+      |${specs: ${meta}}
+      |""".fmt
+      )
+    }
+
+    test("Thera.quote") {
+      val result = Thera.quote("""
+      |```scala
+      |object Test {
+      |  extension StrDeco on (tree: String) {
+      |    inline def show(given DummyImplicit): String = ${spliced}
+      |    def show(color: Boolean)(given DummyImplicit): String = ???
+      |  }
+      |
+      |  val c: Any = "foo".show
+      |}
+      |""".fmt)
+      val expected = """
+      |```scala
+      |object Test \{
+      |  extension StrDeco on (tree: String) \{
+      |    inline def show(given DummyImplicit): String = \$\{spliced\}
+      |    def show(color: Boolean)(given DummyImplicit): String = ???
+      |  \}
+      |
+      |  val c: Any = "foo".show
+      |\}
+      |""".fmt
+      assert(result == expected)
+    }
   }
 }

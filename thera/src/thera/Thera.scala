@@ -8,4 +8,20 @@ object Thera extends Function1[String, Template] {
       case Success(result, _) => result
       case f: Failure => throw new RuntimeException(f.toString)
     }
+
+  def split(src: String): (String, String) = {
+    val header = src.lines.drop(1).takeWhile(_ != "---").mkString("\n")
+    val body = src.lines.drop(1).dropWhile(_ != "---").drop(1).mkString("\n")
+    (header, body)
+  }
+
+  def join(header: String, body: String) =
+    s"---\n$header\n---\n$body"
+
+  def quote(str: String): String = {
+    val pattern = """([\$\{\}\\])""".r
+    pattern.replaceAllIn(str, m => {
+      scala.util.matching.Regex.quoteReplacement(s"\\${m.group(1)}")
+    })
+  }
 }
