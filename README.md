@@ -110,7 +110,7 @@ Internally the hierarchy is represented as a `ValueHierarchy`. Given `h: ValueHi
 - `Arr(value: List[Value])` - a collection of values
 - `Function(f: (List[Value]) => Str)` - a function – such as `foreach` function in the example at the beginning of this document
 - `ValueHierarchy` – a nested value hierarchy
-- `null` - if the queried path doesn't point to a variable
+- Throws a RuntimeException - if the queried path doesn't point to a variable
 
 ## Creating and using ValueHierarchies in templates
 You can create a `ValueHierarchy` from Yaml, or a Scala `Map` using methods defined in its companion object. If you defined a value hierarchy as an implicit value, the `mkString` method of a template will implicitly pick it up and add to the template context:
