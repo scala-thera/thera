@@ -1,0 +1,16 @@
+---
+title: Causal Chains
+---
+# The Domain of Debugging
+One two three
+
+```scala
+object Test {
+  extension StrDeco on (tree: String) {
+    def show(given DummyImplicit): String = ???
+    def show(color: Boolean)(given DummyImplicit): String = ???
+  }
+
+  val c: Any = "foo".show
+}
+```

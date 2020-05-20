@@ -10,7 +10,7 @@ object ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
       val (input, expected) = readIO(s"/parser/$name")
-      val result = Thera(input).toString
+      val result = p(input, module(_)).toString
       if (result != expected) {
         println(s"Result:\n$result\n===\nExpected:\n$expected")
         assert(false)
@@ -26,6 +26,7 @@ object ParserSuite extends TestSuite {
       // test("html-template") - check("html-template")
       test("index") - check("index")
       test("tree-frag") - check("tree-frag")
+      test("braces") - check("braces")
     }
 
     test("tree-args") {
