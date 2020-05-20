@@ -6,7 +6,7 @@ export GPG_TTY=$(tty)
 
 ./mill thera.publish \
   --sonatypeCreds $SONATYPE_USER:$SONATYPE_PW \
-  --gpgArgs --passphrase=$PGP_PASSPHRASE,--batch,--yes,-a,-b \
+  --gpgArgs --passphrase=$PGP_PASSPHRASE,--pinentry-mode=loopback,--batch,--yes,-a,-b \
   --readTimeout 600000 \
   --release true \
   --signed true
