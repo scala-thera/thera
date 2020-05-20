@@ -85,8 +85,8 @@ import $ivy.`com.akmetiuk::thera:0.2.0-M2`
 ## Templates
 A template consists of two parts – header and body. They are delimited by `---`. A header is formatted as [Yaml](https://yaml.org/) and defines the variables accessible to the template body. The template body can access these variables via `${path.to.variable}` syntax. You can process the template via `Thera(templateString).mkString` syntax.
 
-```
-"""
+```scala
+
 val person =
 """
 ---
@@ -98,7 +98,7 @@ ${person.name} is aged ${person.age}
 """
 
 println(Thera(person).mkString)  // Tom is aged 40
-"""
+
 ```
 
 ## ValueHierarchy
