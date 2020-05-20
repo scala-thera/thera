@@ -4,7 +4,9 @@ set -eux
 echo $PGP_SECRET | base64 --decode | gpg --import --no-tty --batch --yes
 export GPG_TTY=$(tty)
 
-./mill thera.assembly
+mkdir -p ~/.gnupg/private-keys-v1.d
+chmod 700 ~/.gnupg/private-keys-v1.d
+
 ./mill thera.publish \
   --sonatypeCreds $SONATYPE_USER:$SONATYPE_PW \
   --gpgArgs --passphrase=$PGP_PASSPHRASE,--batch,--yes,-a,-b \
