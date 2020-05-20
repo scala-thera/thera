@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 
-echo $PGP_SECRET > gpg_key
+echo $PGP_SECRET | base64 --decode > gpg_key
 gpg --import gpg_key
 rm gpg_key
 
