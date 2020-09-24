@@ -45,7 +45,7 @@ package thera
  * @param argNames – the names of the arguments to this template.
  *                   Upon evaluation, the argument values are bound to
  *                   the given names.
- * @param templateContext – constant variables defined in the template.
+ * @param context – constant variables defined in the template.
  * @param body – the body of the template. Can refer to the variables and
  *               templates defined in predefinedVars and bound to argNames.
  */
