@@ -1,17 +1,18 @@
 package thera
 
-import fastparse._, NoWhitespace._, Parsed.{ Failure, Success }
+import fastparse.NoWhitespace._
+import fastparse._
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P]: P[Template] = (header.? ~ body() ~ End).map {
+  def module[_: P](implicit file: sourcecode.File): P[Template] = (header.? ~ body() ~ End).map {
     case (Some((args, h)), t) => Template(args, h, t)
     case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
   }
 }
 
 trait HeaderParser { this: parser.type =>
-  def header[_: P]: P[(List[String], ValueHierarchy)] =
+  def header[_: P](implicit file: sourcecode.File): P[(List[String], ValueHierarchy)] =
     (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
       case (args, Nil  ) => Pass(args.getOrElse(Nil) -> ValueHierarchy.empty)
       case (args, lines) => Pass(args.getOrElse(Nil) ->

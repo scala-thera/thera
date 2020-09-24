@@ -2,15 +2,17 @@ package thera
 
 import utest._
 import utils._
-
 import parser._
-import fastparse._, Parsed.{ Success, Failure }
+import fastparse._
+import Parsed.{Failure, Success}
+import sourcecode.File
 
 object ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
-      val (input, expected) = readIO(s"/parser/$name")
-      val result = p(input, module(_)).toString
+      val path = s"/parser/$name"
+      val (input, expected) = readIO(path)
+      val result = p(input, module(_, File(path))).toString
       if (result != expected) {
         println(s"Result:\n$result\n===\nExpected:\n$expected")
         assert(false)
