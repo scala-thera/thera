@@ -1,6 +1,7 @@
 package thera
 
 import io.circe._
+import thera.reporting.{ParserError, YamlError}
 
 /**
  * A value is data you can refer to in a template.
@@ -127,7 +128,7 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
-  def yaml(src: String): ValueHierarchy = {
+  def yaml(src: String)(implicit file: sourcecode.File): ValueHierarchy = {
     def valueFromNode(node: Json): Value = {
       @annotation.tailrec
       def searchInMapping(path: List[String], m: JsonObject): Value =
@@ -154,7 +155,10 @@ object ValueHierarchy {
     }
 
     io.circe.yaml.parser.parse(src) match {
-      case Left(_) => empty // TODO ParserError("path", 1, 1, src, YamlError)
+      case Left(ParsingFailure(_, e: org.yaml.snakeyaml.error.MarkedYAMLException)) =>
+        val mark = e.getContextMark
+        val line = mark.getLine
+        throw ParserError(file.value, line + 1, mark.getColumn, src.linesIterator.drop(0).toList(line), YamlError)
       case Right(mapping) => valueFromNode(mapping).asInstanceOf[ValueHierarchy]
     }
   }
