@@ -1,12 +1,12 @@
 package thera.reporting
 
-sealed abstract class Error(path: String, line: Int, column: Int, codeSnippet: String, errorMessage: String) {
+sealed abstract class Error(path: String, line: Int, column: Int, codeSnippet: String, errorMessage: String) extends Exception {
 
   override def toString: String = {
-    val cursor = " " * (column - 1) + "^"
+    val cursor = " " * column + "^"
     val prefixingWhitespaces = " " * (Math.floor(Math.log10(line)).toInt + 1)
 
-    f"""-- Error: $path:$line:$column -------
+    f"""\n-- Error: $path:$line:$column -------
        #$line | $codeSnippet
        #$prefixingWhitespaces | $cursor
        #$prefixingWhitespaces | $errorMessage
