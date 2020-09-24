@@ -1,6 +1,5 @@
 package thera
 
-import scala.jdk.CollectionConverters._
 import io.circe._
 
 /**
@@ -154,8 +153,10 @@ object ValueHierarchy {
       }
     }
 
-    val mapping: Json = io.circe.yaml.parser.parse(src).right.get
-    valueFromNode(mapping).asInstanceOf[ValueHierarchy]
+    io.circe.yaml.parser.parse(src) match {
+      case Left(_) => empty // TODO ParserError("path", 1, 1, src, YamlError)
+      case Right(mapping) => valueFromNode(mapping).asInstanceOf[ValueHierarchy]
+    }
   }
 
   def empty: ValueHierarchy = ValueHierarchy { _ => null }
