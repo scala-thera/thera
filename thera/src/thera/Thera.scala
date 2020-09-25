@@ -10,8 +10,8 @@ object Thera extends Function1[String, Template] {
     }
 
   def split(src: String): (String, String) = {
-    val header = src.lines.drop(1).takeWhile(_ != "---").mkString("\n")
-    val body = src.lines.drop(1).dropWhile(_ != "---").drop(1).mkString("\n")
+    val header = src.linesIterator.drop(1).takeWhile(_ != "---").mkString("\n")
+    val body = src.linesIterator.drop(1).dropWhile(_ != "---").drop(1).mkString("\n")
     (header, body)
   }
 

@@ -18,6 +18,10 @@ project/plugins/project/
 .scala_dependencies
 .worksheet
 
+# IntelliJ IDEA specific
+.idea/
+.idea_modules/
+
 # Ensime
 /.ensime*
 
