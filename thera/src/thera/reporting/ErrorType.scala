@@ -1,8 +1,12 @@
 package thera.reporting
 
+import thera.Value
+
 sealed trait ErrorType {
   def toErrorMessage: String
 }
+
+// Parser errors
 
 sealed trait ParserErrorType extends ErrorType
 
@@ -10,10 +14,38 @@ case object YamlError extends ParserErrorType {
   override def toErrorMessage: String = "Syntax error in YAML header"
 }
 
-case object FastparseError extends ParserErrorType {
-  override def toErrorMessage: String = "TODO"
+case class NonExistentTopLevelVariableError(variable: String) extends ParserErrorType {
+  override def toErrorMessage: String = f"Error in the variable name: non-existent top-level variable $variable"
 }
+
+case class NonExistentNonTopLevelVariableError(variable: String) extends ParserErrorType {
+  override def toErrorMessage: String = f"Error in the variable name: non-existent non-top-level variable $variable"
+}
+
+case class NonExistentFunctionError(name: String) extends ParserErrorType {
+  override def toErrorMessage: String = f"Error in the function name: non-existent function $name"
+}
+
+case object SyntaxError extends ParserErrorType {
+  override def toErrorMessage: String = "Invalid syntax"
+}
+
+// Evaluation errors
 
 sealed trait EvaluationErrorType extends ErrorType
 
-// TODO
+case class WrongArgumentTypeError(expected: Value, found: Value) extends EvaluationErrorType {
+  override def toErrorMessage: String = f"Incorrect argument type. Expected: $expected, found: $found"
+}
+
+case class WrongNumberOfArgumentsError(expected: Int, found: Int) extends EvaluationErrorType {
+  override def toErrorMessage: String = f"Wrong number of arguments. Expected: $expected, found: $found"
+}
+
+case class InvalidFunctionUsageError(name: String) extends EvaluationErrorType {
+  override def toErrorMessage: String = f"Invalid usage of a function $name. Functions can only be used as arguments to function calls."
+}
+
+case class InvalidLambdaUsageError(name: String) extends EvaluationErrorType { // TODO the error comes from parsing though
+  override def toErrorMessage: String = f"Invalid usage of a lambda $name. Lambdas can only be used as arguments to function calls."
+}
