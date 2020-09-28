@@ -6,7 +6,10 @@ object Thera {
   def apply(src: String)(implicit file: sourcecode.File): Template =
     fastparse.parse(src, parser.module(_, file)) match {
       case Success(result, _) => result
-      case f: Failure => throw new RuntimeException(f.toString)
+      case f: Failure =>
+        // TODO SyntaxError
+        // TODO if it was a lambda, InvalidLambdaUsageError
+        throw new RuntimeException(f.toString)
     }
 
   def split(src: String): (String, String) = {

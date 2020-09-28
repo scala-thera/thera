@@ -94,7 +94,9 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
     case Text(str) => Str(str)
     case Variable(path) => ctx(path) match {
       case x: Str => x
-      case x if !inFunctionCall => throw new RuntimeException(
+      case x if !inFunctionCall =>
+        // TODO InvalidFunctionUsageError
+        throw new RuntimeException(
         s"Variables outside function calls can only resolve to text. " +
         s"Variable ${path.mkString(".")} was resolved to $x")
       case x => x

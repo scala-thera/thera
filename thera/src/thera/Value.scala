@@ -32,18 +32,30 @@ case class Function(f: List[Value] => Str) extends Value with Function1[List[Val
 
 object Function {
   def function[R1 <: Value](f: (R1) => Str) = Function {
-    case (r1: R1 @unchecked) :: Nil => f(r1)
-    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 1-ary function")
+    case (r1: R1 @unchecked) :: Nil =>
+      // TODO If wrong type for r1, WrongArgumentTypeError
+      f(r1)
+    case x =>
+      // TODO WrongNumberOfArgumentsError
+      throw new RuntimeException(s"Argument list $x is inapplicable to 1-ary function")
   }
 
   def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Str) = Function {
-    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: Nil => f(r1, r2)
-    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 2-ary function")
+    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: Nil =>
+      // TODO If wrong type for r1 or r2, WrongArgumentTypeError
+      f(r1, r2)
+    case x =>
+      // TODO WrongNumberOfArgumentsError
+      throw new RuntimeException(s"Argument list $x is inapplicable to 2-ary function")
   }
 
   def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3) => Str) = Function {
-    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: (r3: R3 @unchecked) :: Nil => f(r1, r2, r3)
-    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 3-ary function")
+    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: (r3: R3 @unchecked) :: Nil =>
+      // TODO If wrong type for r1 or r2 or r3, WrongArgumentTypeError
+      f(r1, r2, r3)
+    case x =>
+      // TODO WrongNumberOfArgumentsError
+      throw new RuntimeException(s"Argument list $x is inapplicable to 3-ary function")
   }
 }
 
@@ -88,7 +100,9 @@ trait ValueHierarchy extends Value {
     }
 
   final def apply(path: List[String]): Value = get(path) match {
-    case null => throw new RuntimeException(s"Value not found: ${path.mkString(".")}")
+    case null =>
+      // TODO NonExistentNonTopLevelVariableError
+      throw new RuntimeException(s"Value not found: ${path.mkString(".")}")
     case x => x
   }
 
@@ -115,7 +129,10 @@ trait ValueHierarchy extends Value {
 
 object ValueHierarchy {
   def apply(f: List[String] => Value): ValueHierarchy = new ValueHierarchy {
-    protected def resolvePath(name: List[String]): Value = f(name)
+    protected def resolvePath(name: List[String]): Value = {
+      // If f(name) is null, NonExistentFunctionError
+      f(name)
+    }
   }
 
   def map(m: Map[List[String], Value]) = ValueHierarchy { path =>
@@ -135,9 +152,11 @@ object ValueHierarchy {
         path match {
           case Nil => null
           case name :: Nil => valueFromNode(m(name).orNull)
-          case name :: rest => m(name).orNull match {
-            case x if x.isObject => searchInMapping(rest, x.asObject.orNull)
-            case _ => null
+          case name :: rest =>
+            // TODO When the following line is null, NonExistentTopLevelVariableError
+            m(name).orNull match {
+              case x if x.isObject => searchInMapping(rest, x.asObject.orNull)
+              case _ => null
           }
         }
 
