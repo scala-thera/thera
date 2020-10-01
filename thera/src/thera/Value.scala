@@ -1,6 +1,7 @@
 package thera
 
 import io.circe._
+import org.yaml.snakeyaml.error.MarkedYAMLException
 import thera.reporting.{ParserError, YamlError}
 
 /**
@@ -130,7 +131,7 @@ trait ValueHierarchy extends Value {
 object ValueHierarchy {
   def apply(f: List[String] => Value): ValueHierarchy = new ValueHierarchy {
     protected def resolvePath(name: List[String]): Value = {
-      // If f(name) is null, NonExistentFunctionError
+      // TODO If f(name) is null, NonExistentFunctionError
       f(name)
     }
   }
@@ -145,7 +146,7 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
-  def yaml(src: String)(implicit file: sourcecode.File): ValueHierarchy = {
+  def yaml(src: String, templateSourceLine: Option[sourcecode.Line] = None)(implicit file: sourcecode.File): ValueHierarchy = {
     def valueFromNode(node: Json): Value = {
       @annotation.tailrec
       def searchInMapping(path: List[String], m: JsonObject): Value =
@@ -174,10 +175,13 @@ object ValueHierarchy {
     }
 
     io.circe.yaml.parser.parse(src) match {
-      case Left(ParsingFailure(_, e: org.yaml.snakeyaml.error.MarkedYAMLException)) =>
+      case Left(ParsingFailure(_, e: MarkedYAMLException)) =>
         val mark = e.getContextMark
         val line = mark.getLine
-        throw ParserError(file.value, line + 1, mark.getColumn, src.linesIterator.drop(0).toList(line), YamlError)
+        val templateLine = templateSourceLine.getOrElse(sourcecode.Line(0)).value
+
+        throw ParserError(file.value, line + templateLine + 2, mark.getColumn,
+          src.linesIterator.drop(0).toList(line), YamlError)
       case Right(mapping) => valueFromNode(mapping).asInstanceOf[ValueHierarchy]
     }
   }

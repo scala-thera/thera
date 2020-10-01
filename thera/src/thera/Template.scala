@@ -146,3 +146,5 @@ case class Variable(path: List[String]) extends Node
 sealed trait CallArg
 case class Body(nodes: List[Node]) extends CallArg
 case class Lambda(argNames: List[String], body: Body) extends CallArg
+
+case class TemplateSource(text: String, line: sourcecode.Line)
