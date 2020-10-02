@@ -4,15 +4,15 @@ import utest._
 import utils._
 import parser._
 import fastparse._
-import Parsed.{Failure, Success}
 import sourcecode.File
+import thera.reporting.FileInfo
 
 object ParserSuite extends TestSuite {
   val tests = Tests {
     def check(name: String): Unit = {
       val path = s"/parser/$name"
       val (input, expected) = readIO(path)
-      val result = p(input, module(_, File(path))).toString
+      val result = p(input, module(_, FileInfo(File(path), isExternal = true))).toString
       if (result != expected) {
         println(s"Result:\n$result\n===\nExpected:\n$expected")
         assert(false)

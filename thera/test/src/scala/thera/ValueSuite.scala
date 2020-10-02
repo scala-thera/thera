@@ -3,6 +3,7 @@ package thera
 import utest._
 import utils._
 import ValueHierarchy._
+import thera.reporting.{FileInfo, ParserError, YamlError}
 
 object ValueSuite extends TestSuite {
   val tests = Tests {
@@ -38,10 +39,12 @@ object ValueSuite extends TestSuite {
       }
 
       test("yaml") {
+        val fileInfo = FileInfo(sourcecode.File(), isExternal = false)
+
         test("arrays") {
           val vh = ValueHierarchy.yaml("""
             |keywords: [one, two, three]
-          """.stripMargin)
+          """.stripMargin, fileInfo)
           val res = vh("keywords" :: Nil)
           val expected = Arr(List(Str("one"), Str("two"), Str("three")))
           assert(res == expected)
@@ -50,7 +53,7 @@ object ValueSuite extends TestSuite {
         test("empty arrays") {
           val vh = ValueHierarchy.yaml("""
             |keywords: []
-          """.stripMargin)
+          """.stripMargin, fileInfo)
           val res = vh("keywords" :: Nil)
           val expected = Arr.empty
           assert(res == expected)
@@ -59,12 +62,23 @@ object ValueSuite extends TestSuite {
         test("arrays of json objects") {
           val vh = ValueHierarchy.yaml("""
             |stuff: [{ "foo": "bar" }]
-          """.stripMargin)
+          """.stripMargin, fileInfo)
           val res =
             vh("stuff" :: Nil).asArr.value
             .head.asValueHierarchy("foo" :: Nil)
           val expected = Str("bar")
           assert(res == expected)
+        }
+
+        test("error reporting") {
+          val error = intercept[reporting.Error] {
+            ValueHierarchy.yaml("""
+            |stuff: { "foo": "bar" }]
+          """.stripMargin, fileInfo)
+          }
+
+          val expected = ParserError(fileInfo.file.value, 76, 23, """stuff: { "foo": "bar" }]""", YamlError)
+          assert(error == expected)
         }
       }
     }
