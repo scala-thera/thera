@@ -5,18 +5,18 @@ import fastparse._
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P](implicit file: sourcecode.File, templateSourceLine: Option[sourcecode.Line] = None): P[Template] = (header(templateSourceLine).? ~ body() ~ End).map {
+  def module[_: P](implicit file: (sourcecode.File, Boolean)): P[Template] = (header(file).? ~ body() ~ End).map {
     case (Some((args, h)), t) => Template(args, h, t)
     case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
   }
 }
 
 trait HeaderParser { this: parser.type =>
-  def header[_: P](templateSourceLine: Option[sourcecode.Line] = None)(implicit file: sourcecode.File): P[(List[String], ValueHierarchy)] =
+  def header[_: P](file: (sourcecode.File, Boolean)): P[(List[String], ValueHierarchy)] =
     (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
       case (args, Nil  ) => Pass(args.getOrElse(Nil) -> ValueHierarchy.empty)
       case (args, lines) => Pass(args.getOrElse(Nil) ->
-        ValueHierarchy.yaml(lines.mkString("\n"), templateSourceLine))
+        ValueHierarchy.yaml(lines.mkString("\n"), file))
     }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(min = 0, sep = t.nl)

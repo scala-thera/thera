@@ -9,7 +9,7 @@ import scala.util.Using
 
 object Thera {
   def apply(src: String)(implicit file: sourcecode.File): Template =
-    fastparse.parse(src, parser.module(_, file)) match {
+    fastparse.parse(src, parser.module(_, (file, false))) match {
       case Success(result, _) => result
       case f: Failure =>
         // TODO SyntaxError
@@ -19,23 +19,13 @@ object Thera {
 
   // TODO
   def apply(src: URL): Template =
-    fastparse.parse(Using.resource(Source.fromURL(src)){ _.mkString}, parser.module(_, sourcecode.File(src.getPath))) match {
+    fastparse.parse(Using.resource(Source.fromURL(src)){ _.mkString}, parser.module(_, (sourcecode.File(src.getPath), true))) match {
       case Success(result, _) => result
       case f: Failure =>
         // TODO SyntaxError
         // TODO if it was a lambda, InvalidLambdaUsageError
         throw new RuntimeException(f.toString)
     }
-
-  def apply(src: TemplateSource)(implicit file: sourcecode.File): Template = {
-    fastparse.parse(src.text, parser.module(_, file, Some(src.line))) match {
-      case Success(result, _) => result
-      case f: Failure =>
-        // TODO SyntaxError
-        // TODO if it was a lambda, InvalidLambdaUsageError
-        throw new RuntimeException(f.toString)
-    }
-  }
 
   def split(src: String): (String, String) = {
     val header = src.linesIterator.drop(1).takeWhile(_ != "---").mkString("\n")
