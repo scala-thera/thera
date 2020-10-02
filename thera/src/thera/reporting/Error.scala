@@ -3,7 +3,7 @@ package thera.reporting
 sealed abstract class Error(path: String, line: Int, column: Int, codeSnippet: String, errorMessage: String) extends Exception {
 
   override def toString: String = {
-    val cursor = " " * column + "^"
+    val cursor = " " * (column - 1) + "^"
     val prefixingWhitespaces = " " * (Math.floor(Math.log10(line)).toInt + 1)
 
     f"""\n-- Error: $path:$line:$column -------

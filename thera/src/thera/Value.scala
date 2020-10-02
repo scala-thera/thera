@@ -180,8 +180,8 @@ object ValueHierarchy {
         val mark = e.getProblemMark
         val line = mark.getLine
         val code = src.linesIterator.toList(line)
-        throw ParserError(filename, if (fileInfo.isExternal) line + 2 else Utils.getLine(code, filename),
-          mark.getColumn, code, YamlError)
+        throw ParserError(filename, if (fileInfo.isExternal) line + 2 else Utils.getLineNb(code, filename),
+          mark.getColumn + 1, code, YamlError)
       case Right(mapping) => valueFromNode(mapping).asInstanceOf[ValueHierarchy]
     }
   }

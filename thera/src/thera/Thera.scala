@@ -3,19 +3,30 @@ package thera
 import java.net.URL
 
 import fastparse.Parsed.{Failure, Success}
-import thera.reporting.FileInfo
+import thera.reporting.Utils.{getCodeSnippetFromParsingFailure, getColumnFromParsingFailure, getLine}
+import thera.reporting.{FileInfo, ParserError, SyntaxError}
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, Future}
 import scala.io.Source
 import scala.util.Using
 
 object Thera {
-  private def buildTemplate(src: String, file: FileInfo): Template =
-    fastparse.parse(src, parser.module(_, file)) match {
+  private def buildTemplate(src: String, fileInfo: FileInfo): Template =
+    fastparse.parse(src, parser.module(_, fileInfo)) match {
       case Success(result, _) => result
       case f: Failure =>
-        // TODO SyntaxError
+        val code = getCodeSnippetFromParsingFailure(f)
+
+        val ((line, lineNb), column) = {
+          val ln = Future { getLine(code, fileInfo.file.value) }
+          val col = Future { getColumnFromParsingFailure(f) }
+          (Await.result(ln, Duration.Inf), Await.result(col, Duration.Inf))
+        }
+
+        throw ParserError(fileInfo.file.value, lineNb, column, line, SyntaxError)
         // TODO if it was a lambda, InvalidLambdaUsageError
-        throw new RuntimeException(f.toString)
     }
 
   def apply(src: String)(implicit file: sourcecode.File): Template = buildTemplate(src, FileInfo(file, isExternal = false))

@@ -77,7 +77,7 @@ object ValueSuite extends TestSuite {
           """.stripMargin, fileInfo)
           }
 
-          val expected = ParserError(fileInfo.file.value, 76, 23, """stuff: { "foo": "bar" }]""", YamlError)
+          val expected = ParserError(fileInfo.file.value, 76, 24, """stuff: { "foo": "bar" }]""", YamlError)
           assert(error == expected)
         }
       }
