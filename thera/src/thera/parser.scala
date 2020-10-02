@@ -2,21 +2,22 @@ package thera
 
 import fastparse.NoWhitespace._
 import fastparse._
+import thera.reporting.FileInfo
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P](implicit file: (sourcecode.File, Boolean)): P[Template] = (header(file).? ~ body() ~ End).map {
+  def module[_: P](implicit fileInfo: FileInfo): P[Template] = (header(fileInfo).? ~ body() ~ End).map {
     case (Some((args, h)), t) => Template(args, h, t)
     case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
   }
 }
 
 trait HeaderParser { this: parser.type =>
-  def header[_: P](file: (sourcecode.File, Boolean)): P[(List[String], ValueHierarchy)] =
+  def header[_: P](fileInfo: FileInfo): P[(List[String], ValueHierarchy)] =
     (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
       case (args, Nil  ) => Pass(args.getOrElse(Nil) -> ValueHierarchy.empty)
       case (args, lines) => Pass(args.getOrElse(Nil) ->
-        ValueHierarchy.yaml(lines.mkString("\n"), file))
+        ValueHierarchy.yaml(lines.mkString("\n"), fileInfo))
     }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(min = 0, sep = t.nl)

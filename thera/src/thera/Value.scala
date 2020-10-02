@@ -2,7 +2,7 @@ package thera
 
 import io.circe._
 import org.yaml.snakeyaml.error.MarkedYAMLException
-import thera.reporting.{ParserError, Utils, YamlError}
+import thera.reporting.{FileInfo, ParserError, Utils, YamlError}
 
 /**
  * A value is data you can refer to in a template.
@@ -146,7 +146,7 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
-  def yaml(src: String, file: (sourcecode.File, Boolean)): ValueHierarchy = {
+  def yaml(src: String, fileInfo: FileInfo): ValueHierarchy = {
     def valueFromNode(node: Json): Value = {
       @annotation.tailrec
       def searchInMapping(path: List[String], m: JsonObject): Value =
@@ -176,13 +176,12 @@ object ValueHierarchy {
 
     io.circe.yaml.parser.parse(src) match {
       case Left(ParsingFailure(_, e: MarkedYAMLException)) =>
-        val (sourceFile, isExternal) = file
-        val filename = sourceFile.value
-        val mark = e.getContextMark
+        val filename = fileInfo.file.value
+        val mark = e.getProblemMark
         val line = mark.getLine
         val code = src.linesIterator.toList(line)
-        throw ParserError(filename, if (isExternal) line + 2 else Utils.getLine(code, filename), mark.getColumn, code, YamlError)
-
+        throw ParserError(filename, if (fileInfo.isExternal) line + 2 else Utils.getLine(code, filename),
+          mark.getColumn, code, YamlError)
       case Right(mapping) => valueFromNode(mapping).asInstanceOf[ValueHierarchy]
     }
   }

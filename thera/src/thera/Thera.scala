@@ -3,13 +3,14 @@ package thera
 import java.net.URL
 
 import fastparse.Parsed.{Failure, Success}
+import thera.reporting.FileInfo
 
 import scala.io.Source
 import scala.util.Using
 
 object Thera {
-  def apply(src: String)(implicit file: sourcecode.File): Template =
-    fastparse.parse(src, parser.module(_, (file, false))) match {
+  private def buildTemplate(src: String, file: FileInfo): Template =
+    fastparse.parse(src, parser.module(_, file)) match {
       case Success(result, _) => result
       case f: Failure =>
         // TODO SyntaxError
@@ -17,15 +18,12 @@ object Thera {
         throw new RuntimeException(f.toString)
     }
 
-  // TODO
-  def apply(src: URL): Template =
-    fastparse.parse(Using.resource(Source.fromURL(src)){ _.mkString}, parser.module(_, (sourcecode.File(src.getPath), true))) match {
-      case Success(result, _) => result
-      case f: Failure =>
-        // TODO SyntaxError
-        // TODO if it was a lambda, InvalidLambdaUsageError
-        throw new RuntimeException(f.toString)
-    }
+  def apply(src: String)(implicit file: sourcecode.File): Template = buildTemplate(src, FileInfo(file, isExternal = false))
+
+  def apply(src: URL): Template = {
+    val srcString = Using.resource(Source.fromURL(src)){ _.mkString}
+    buildTemplate(srcString, FileInfo(sourcecode.File(src.getPath), isExternal = true))
+  }
 
   def split(src: String): (String, String) = {
     val header = src.linesIterator.drop(1).takeWhile(_ != "---").mkString("\n")
