@@ -1,6 +1,6 @@
 package thera
 
-import java.net.URL
+import java.io.File
 
 import fastparse.Parsed.{Failure, Success}
 import thera.reporting.Utils.{getCodeSnippetFromParsingFailure, getColumnFromParsingFailure, getLine}
@@ -31,11 +31,9 @@ object Thera {
 
   def apply(src: String)(implicit file: sourcecode.File): Template = buildTemplate(src, FileInfo(file, isExternal = false))
 
-  // TODO apply (src: Java File)
-
-  def apply(src: URL): Template = { // TODO drop it
-    val srcString = Using.resource(Source.fromURL(src)){ _.mkString}
-    buildTemplate(srcString, FileInfo(sourcecode.File(src.getPath), isExternal = true))
+  def apply(src: File): Template = {
+    val srcString = Using.resource(Source.fromFile(src)){ _.mkString}
+    buildTemplate(srcString, FileInfo(sourcecode.File(src.getAbsolutePath), isExternal = true))
   }
 
   def split(src: String): (String, String) = {
