@@ -3,8 +3,8 @@ package thera
 import java.io.File
 
 import fastparse.Parsed.{Failure, Success}
-import thera.reporting.Utils.{getCodeSnippetFromParsingFailure, getColumnFromParsingFailure, getLine}
-import thera.reporting.{FileInfo, ParserError, SyntaxError}
+import thera.reporting.Utils.{getCodeSnippetFromParsingFailure, getColumnFromParsingFailure, getLine, isLambda}
+import thera.reporting._
 
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.duration.Duration
@@ -14,6 +14,13 @@ import scala.util.Using
 
 object Thera {
 
+  def apply(src: String)(implicit file: sourcecode.File): Template = buildTemplate(src, FileInfo(file, isExternal = false))
+
+  def apply(src: File): Template = {
+    val srcString = Using.resource(Source.fromFile(src)) { _.mkString }
+    buildTemplate(srcString, FileInfo(sourcecode.File(src.getAbsolutePath), isExternal = true))
+  }
+
   private def buildTemplate(src: String, fileInfo: FileInfo): Template =
     fastparse.parse(src, parser.module(_, fileInfo)) match {
       case Success(result, _) => result
@@ -21,21 +28,18 @@ object Thera {
         val code = getCodeSnippetFromParsingFailure(f)
 
         val ((line, lineNb), column) = {
-          val ln = Future { getLine(code, fileInfo.file.value) }
-          val col = Future { getColumnFromParsingFailure(f) }
+          val ln = Future {
+            getLine(code, fileInfo.file.value)
+          }
+          val col = Future {
+            getColumnFromParsingFailure(f)
+          }
           (Await.result(ln, Duration.Inf), Await.result(col, Duration.Inf))
         }
 
-        throw ParserError(fileInfo.file.value, lineNb, column, line, SyntaxError)
-        // TODO if it was a lambda, InvalidLambdaUsageError
+        throw if (isLambda(code)) EvaluationError(fileInfo.file.value, lineNb, column, line, InvalidLambdaUsageError)
+        else ParserError(fileInfo.file.value, lineNb, column, line, SyntaxError)
     }
-
-  def apply(src: String)(implicit file: sourcecode.File): Template = buildTemplate(src, FileInfo(file, isExternal = false))
-
-  def apply(src: File): Template = {
-    val srcString = Using.resource(Source.fromFile(src)){ _.mkString}
-    buildTemplate(srcString, FileInfo(sourcecode.File(src.getAbsolutePath), isExternal = true))
-  }
 
   def split(src: String): (String, String) = {
     val header = src.linesIterator.drop(1).takeWhile(_ != "---").mkString("\n")

@@ -46,6 +46,6 @@ case class InvalidFunctionUsageError(name: String) extends EvaluationErrorType {
   override def toErrorMessage: String = f"Invalid usage of a function $name. Functions can only be used as arguments to function calls."
 }
 
-case class InvalidLambdaUsageError(name: String) extends EvaluationErrorType { // TODO the error comes from parsing though
-  override def toErrorMessage: String = f"Invalid usage of a lambda $name. Lambdas can only be used as arguments to function calls."
+case object InvalidLambdaUsageError extends EvaluationErrorType {
+  override def toErrorMessage: String = f"Invalid usage of a lambda. Lambdas can only be used as arguments to function calls."
 }

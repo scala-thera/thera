@@ -29,4 +29,9 @@ object Utils {
     val pos = failure.msg.drop(9).takeWhile(_ != ',').split(':')
     (pos(0).toInt, pos(1).toInt)
   }
+
+  private[thera] def isLambda(s: String): Boolean = {
+    val lambdaRegex = """=>\s*\$\{[\s\S]+\}\s*""".r
+    lambdaRegex.matches(s)
+  }
 }
