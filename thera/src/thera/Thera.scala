@@ -31,7 +31,9 @@ object Thera {
 
   def apply(src: String)(implicit file: sourcecode.File): Template = buildTemplate(src, FileInfo(file, isExternal = false))
 
-  def apply(src: URL): Template = {
+  // TODO apply (src: Java File)
+
+  def apply(src: URL): Template = { // TODO drop it
     val srcString = Using.resource(Source.fromURL(src)){ _.mkString}
     buildTemplate(srcString, FileInfo(sourcecode.File(src.getPath), isExternal = true))
   }

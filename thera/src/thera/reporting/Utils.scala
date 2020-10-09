@@ -12,6 +12,7 @@ object Utils {
   private[thera] def getLine(s: String, filename: String): (String, Int) = {
     val source = Using.resource(Source.fromFile(filename)) { _.getLines().toList.zipWithIndex }
 
+    // TODO use find
     for ((line, lineNb) <- source) {
       if (line.contains(s)) return (line, lineNb + 1) // lines start at 1, indices at 0
     }
