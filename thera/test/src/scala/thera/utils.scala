@@ -4,8 +4,7 @@ import scala.io.Source
 
 object utils {
   def readResource(path: String): String = {
-    Source.fromURL(getClass.getResource(path))
-      .mkString
+    Source.fromURL(getClass.getResource(path)).mkString
   }
 
   def readIO(path: String): (String, String) = {

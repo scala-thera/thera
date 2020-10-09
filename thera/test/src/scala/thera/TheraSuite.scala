@@ -1,7 +1,10 @@
 package thera
 
-import ValueHierarchy._, Function._
+import java.io.File
 
+import ValueHierarchy._
+import Function._
+import thera.reporting.{EvaluationError, InvalidLambdaUsageError, ParserError, YamlError}
 import utest._
 import utils._
 
@@ -62,6 +65,47 @@ object TheraSuite extends TestSuite {
 
       assert(result == bodyExpected)
     }
+
+    test("templating capabilities from file") {
+      new File(getClass.getResource("/evaluate/templating-capabilities/body").getFile)
+      val bodySrc = new File(getClass.getResource("/evaluate/templating-capabilities/body").getFile)//read("/templating-capabilities/body")
+      val bodyExpected = read("/templating-capabilities/body.check")
+      val templateSrc = new File(getClass.getResource("/evaluate/templating-capabilities/template").getFile)//read("/templating-capabilities/template")
+
+      val body = Thera(bodySrc)
+      val func = Thera(templateSrc).mkFunction(body.context)
+      val result = func(body.mkValue :: Nil)
+
+      assert(result == bodyExpected)
+    }
+
+    test("Invalid lambda usage in template") {
+      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/lambda").getFile)
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 36,
+       """Hello! We are located at the ${foo => ${foo} ${foo}}!""", InvalidLambdaUsageError)
+
+      assert(error == expected)
+    }
+
+    test("YAML parsing error in template") {
+      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/yaml").getFile)
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = ParserError(templateSrc.getAbsolutePath, 6, 23,
+        """    -  name: "Mercury", mass: "3.30 * 10^23" }""", YamlError)
+
+      assert(error == expected)
+    }
+
+    // TODO fastparse error
 
     test("Variables can evaluate to functions") {
       val ctx = names(

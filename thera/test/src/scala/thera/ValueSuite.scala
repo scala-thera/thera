@@ -70,7 +70,7 @@ object ValueSuite extends TestSuite {
           assert(res == expected)
         }
 
-        test("error reporting") {
+        test("YAML error reporting") {
           val error = intercept[reporting.Error] {
             ValueHierarchy.yaml("""
             |stuff: { "foo": "bar" }]
