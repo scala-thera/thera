@@ -13,6 +13,7 @@ import scala.io.Source
 import scala.util.Using
 
 object Thera {
+
   private def buildTemplate(src: String, fileInfo: FileInfo): Template =
     fastparse.parse(src, parser.module(_, fileInfo)) match {
       case Success(result, _) => result
