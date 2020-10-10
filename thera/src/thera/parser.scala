@@ -6,7 +6,7 @@ import thera.reporting.FileInfo
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P](implicit fileInfo: FileInfo): P[Template] = (header(fileInfo).? ~ body() ~ End).map {
+  def module[_: P](implicit fileInfo: FileInfo, input: String): P[Template] = (header(fileInfo).? ~ body() ~ End).map {
     case (Some((args, h)), t) => Template(args, h, t)
     case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
   }
@@ -29,11 +29,13 @@ trait HeaderParser { this: parser.type =>
 trait BodyParser { this: parser.type =>
   def body[_: P](specialChars: String = ""): P[Body] =
     node((specialChars ++ t.defaultSpecialChars).toSeq.distinct.unwrap).rep(1)
-      .map(_.toList.filter { case Text("") => false case _ => true })
+      .map(_.toList.filter { case IndexedNode(Text(""), _)  => false case _ => true })
       .map(ns => Body(ns))
 
-  def node[_: P](specialChars: String): P[Node] =
-    expr | text(specialChars)
+  def node[_: P](specialChars: String): P[IndexedNode] =
+    (Index ~ (expr | text(specialChars))).map {
+      case (index, n) => IndexedNode(n, index)
+    }
 
 
   def text[_: P](specialChars: String): P[Text] =

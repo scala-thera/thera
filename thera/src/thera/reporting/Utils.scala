@@ -34,4 +34,14 @@ object Utils {
     val lambdaRegex = """=>\s*\$\{[\s\S]+\}\s*""".r
     lambdaRegex.matches(s)
   }
+
+  private[thera] def indexToPosition(input: String, index: Int): (Int, Int) = {
+    val prefix = input.take(index)
+    val lineNum = prefix.count(_ == '\n') + 1
+    val colNum = prefix.lastIndexOf('\n') match{
+      case -1 => index + 1
+      case n => index - n
+    }
+    (lineNum, colNum)
+  }
 }

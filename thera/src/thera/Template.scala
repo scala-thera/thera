@@ -1,5 +1,7 @@
 package thera
 
+import thera.reporting.Utils.indexToPosition
+
 /**
  * A template is a mixture of text, variables and calls to other templates.
  * The variables and names of other templates are resolved against a runtime
@@ -49,7 +51,7 @@ package thera
  * @param body – the body of the template. Can refer to the variables and
  *               templates defined in predefinedVars and bound to argNames.
  */
-case class Template(argNames: List[String], context: ValueHierarchy, body: Body) {
+case class Template(argNames: List[String], context: ValueHierarchy, body: Body)(implicit input: String) {
   def mkString(implicit ctx: ValueHierarchy =
     ValueHierarchy.empty): String =
     evaluate(ctx) match {
@@ -89,12 +91,13 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
     nodesToString(evaluatedValues)
   }
 
-  private def evaluateNode(node: Node, inFunctionCall: Boolean)(
-      implicit ctx: ValueHierarchy): Value = node match {
+  private def evaluateNode(node: IndexedNode, inFunctionCall: Boolean)(
+      implicit ctx: ValueHierarchy): Value = node.node match {
     case Text(str) => Str(str)
     case Variable(path) => ctx(path) match {
       case x: Str => x
       case x if !inFunctionCall =>
+        println(indexToPosition(input, node.index))
         // TODO InvalidFunctionUsageError
         throw new RuntimeException(
         s"Variables outside function calls can only resolve to text. " +
@@ -132,6 +135,7 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
 }
 
 sealed trait Node
+case class IndexedNode(node: Node, index: Int)
 case class Text(value: String) extends Node
 /**
  * A call to a template located at a given path and with provided arguments.
@@ -144,7 +148,7 @@ case class Call(path: List[String], args: List[CallArg]) extends Node
 case class Variable(path: List[String]) extends Node
 
 sealed trait CallArg
-case class Body(nodes: List[Node]) extends CallArg
+case class Body(nodes: List[IndexedNode]) extends CallArg
 case class Lambda(argNames: List[String], body: Body) extends CallArg
 
 case class TemplateSource(text: String, line: sourcecode.Line)
