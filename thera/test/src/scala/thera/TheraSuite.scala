@@ -4,7 +4,7 @@ import java.io.File
 
 import ValueHierarchy._
 import Function._
-import thera.reporting.{EvaluationError, InvalidLambdaUsageError, ParserError, YamlError}
+import thera.reporting.{EvaluationError, InvalidLambdaUsageError, ParserError, SyntaxError, YamlError}
 import utest._
 import utils._
 
@@ -105,7 +105,31 @@ object TheraSuite extends TestSuite {
       assert(error == expected)
     }
 
-    // TODO fastparse error
+    test("Invalid syntax error 1 in template") {
+      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/invalid-syntax-1").getFile)
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = ParserError(templateSrc.getAbsolutePath, 18, 21,
+        """${foreach: ${system planets}, ${planet => \""", SyntaxError)
+
+      assert(error == expected)
+    }
+
+    test("Invalid syntax error 2 in template") {
+      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/invalid-syntax-2").getFile)
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = ParserError(templateSrc.getAbsolutePath, 15, 32,
+        """Hello! We are located at the $x{system.name}!""", SyntaxError)
+
+      assert(error == expected)
+    }
 
     test("Variables can evaluate to functions") {
       val ctx = names(
