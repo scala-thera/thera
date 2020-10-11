@@ -144,8 +144,9 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
     }
 }
 
-sealed trait Node
 case class IndexedNode(node: Node, index: Int)
+
+sealed trait Node
 case class Text(value: String) extends Node
 /**
  * A call to a template located at a given path and with provided arguments.
