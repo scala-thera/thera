@@ -1,6 +1,7 @@
 package thera
 
-import thera.reporting.Utils.indexToPosition
+import thera.reporting.Utils.{getLine, indexToPosition}
+import thera.reporting.{EvaluationError, FileInfo, InvalidFunctionUsageError}
 
 /**
  * A template is a mixture of text, variables and calls to other templates.
@@ -51,7 +52,7 @@ import thera.reporting.Utils.indexToPosition
  * @param body – the body of the template. Can refer to the variables and
  *               templates defined in predefinedVars and bound to argNames.
  */
-case class Template(argNames: List[String], context: ValueHierarchy, body: Body)(implicit input: String) {
+case class Template(argNames: List[String], context: ValueHierarchy, body: Body)(implicit fileInfo: FileInfo, input: String) {
   def mkString(implicit ctx: ValueHierarchy =
     ValueHierarchy.empty): String =
     evaluate(ctx) match {
@@ -97,11 +98,20 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
     case Variable(path) => ctx(path) match {
       case x: Str => x
       case x if !inFunctionCall =>
-        println(indexToPosition(input, node.index))
-        // TODO InvalidFunctionUsageError
-        throw new RuntimeException(
-        s"Variables outside function calls can only resolve to text. " +
-        s"Variable ${path.mkString(".")} was resolved to $x")
+        val function = path.mkString(".")
+        val filename = fileInfo.file.value
+
+        val (line, column, code) = if (fileInfo.isExternal) {
+          val (line, column) = indexToPosition(input, node.index)
+          val code = getLine(function, filename)._1
+          (line, column, code)
+        } else {
+          val column = indexToPosition(input, node.index)._2
+          val (code, line) = getLine(function, filename)
+          (line, column, code)
+        }
+
+        throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(function))
       case x => x
     }
     case Call(path, argsNodes) =>
