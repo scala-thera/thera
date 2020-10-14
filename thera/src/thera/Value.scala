@@ -2,7 +2,7 @@ package thera
 
 import io.circe._
 import org.yaml.snakeyaml.error.MarkedYAMLException
-import thera.reporting.{FileInfo, ParserError, Utils, YamlError}
+import thera.reporting._
 
 /**
  * A value is data you can refer to in a template.
@@ -37,8 +37,7 @@ object Function {
       // TODO If wrong type for r1, WrongArgumentTypeError
       f(r1)
     case x =>
-      // TODO WrongNumberOfArgumentsError
-      throw new RuntimeException(s"Argument list $x is inapplicable to 1-ary function")
+      throw InternalEvaluationError(WrongNumberOfArgumentsError(1, x.length))
   }
 
   def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Str) = Function {
@@ -46,8 +45,7 @@ object Function {
       // TODO If wrong type for r1 or r2, WrongArgumentTypeError
       f(r1, r2)
     case x =>
-      // TODO WrongNumberOfArgumentsError
-      throw new RuntimeException(s"Argument list $x is inapplicable to 2-ary function")
+      throw InternalEvaluationError(WrongNumberOfArgumentsError(2, x.length))
   }
 
   def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3) => Str) = Function {
@@ -55,8 +53,7 @@ object Function {
       // TODO If wrong type for r1 or r2 or r3, WrongArgumentTypeError
       f(r1, r2, r3)
     case x =>
-      // TODO WrongNumberOfArgumentsError
-      throw new RuntimeException(s"Argument list $x is inapplicable to 3-ary function")
+      throw InternalEvaluationError(WrongNumberOfArgumentsError(3, x.length))
   }
 }
 

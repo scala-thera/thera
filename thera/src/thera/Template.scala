@@ -1,7 +1,7 @@
 package thera
 
 import thera.reporting.Utils.{getLine, indexToPosition}
-import thera.reporting.{EvaluationError, FileInfo, InvalidFunctionUsageError}
+import thera.reporting.{EvaluationError, FileInfo, InternalEvaluationError, InvalidFunctionUsageError}
 
 /**
  * A template is a mixture of text, variables and calls to other templates.
@@ -93,46 +93,64 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body)
   }
 
   private def evaluateNode(node: IndexedNode, inFunctionCall: Boolean)(
-      implicit ctx: ValueHierarchy): Value = node.node match {
-    case Text(str) => Str(str)
-    case Variable(path) => ctx(path) match {
-      case x: Str => x
-      case x if !inFunctionCall =>
-        val function = path.mkString(".")
-        val filename = fileInfo.file.value
+      implicit ctx: ValueHierarchy): Value = {
+    val filename = fileInfo.file.value
 
-        val (line, column, code) = if (fileInfo.isExternal) {
-          val (line, column) = indexToPosition(input, node.index)
-          val code = getLine(function, filename)._1
-          (line, column, code)
-        } else {
-          val column = indexToPosition(input, node.index)._2
-          val (code, line) = getLine(function, filename)
-          (line, column, code)
+    def getLineColumnCode(name: String): (Int, Int, String) = {
+      if (fileInfo.isExternal) {
+        val (line, column) = indexToPosition(input, node.index)
+        val code = getLine(name, filename)._1
+        (line, column, code)
+      } else {
+        val column = indexToPosition(input, node.index)._2
+        val (code, line) = getLine(name, filename)
+        (line, column, code)
+      }
+    }
+
+    node.node match {
+      case Text(str) => Str(str)
+      case Variable(path) => ctx(path) match {
+        case x: Str => x
+        case _ if !inFunctionCall =>
+          val function = path.mkString(".")
+
+          val (line, column, code) = getLineColumnCode(function)
+
+          throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(function))
+        case x => x
+      }
+      case Call(path, argsNodes) =>
+        val f: Function = ctx(path) match {
+          case x: Function => x
+          case x => throw new RuntimeException(
+            s"Expected function at path ${path.mkString(".")}, got: $x")
+        }
+        val args: List[Value] = argsNodes.map {
+          case Lambda(argNames, body) =>
+            Function { argValues =>
+              val ctx2 = ctx + ValueHierarchy.names(argNames.zip(argValues).toMap)
+              Str(evaluateBody(body)(ctx2))
+            }
+          case b: Body =>
+            b.nodes.map(evaluateNode(_, inFunctionCall = true)) match {
+              case x :: Nil => x
+              case xs => Str(nodesToString(xs))
+            }
         }
 
-        throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(function))
-      case x => x
+        try {
+          f(args)
+        } catch {
+          case InternalEvaluationError(e) =>
+            val filename = fileInfo.file.value
+            val functionName = path.mkString(".")
+
+            val (line, column, code) = getLineColumnCode(functionName)
+
+            throw EvaluationError(filename, line, column, code, e)
+        }
     }
-    case Call(path, argsNodes) =>
-      val f: Function = ctx(path) match {
-        case x: Function => x
-        case x => throw new RuntimeException(
-          s"Expected function at path ${path.mkString(".")}, got: $x")
-      }
-      val args: List[Value] = argsNodes.map {
-        case Lambda(argNames, body) =>
-          Function { argValues =>
-            val ctx2 = ctx + ValueHierarchy.names(argNames.zip(argValues).toMap)
-            Str(evaluateBody(body)(ctx2))
-          }
-        case b: Body =>
-          b.nodes.map(evaluateNode(_, inFunctionCall = true)) match {
-            case x :: Nil => x
-            case xs => Str(nodesToString(xs))
-          }
-      }
-      f(args)
   }
 
   private def nodesToString(ns: List[Value]): String =
@@ -161,5 +179,3 @@ case class Variable(path: List[String]) extends Node
 sealed trait CallArg
 case class Body(nodes: List[IndexedNode]) extends CallArg
 case class Lambda(argNames: List[String], body: Body) extends CallArg
-
-case class TemplateSource(text: String, line: sourcecode.Line)
