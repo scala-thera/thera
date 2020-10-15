@@ -12,7 +12,8 @@ object ParserSuite extends TestSuite {
     def check(name: String): Unit = {
       val path = s"/parser/$name"
       val (input, expected) = readIO(path)
-      val result = p(input, module(_, FileInfo(File(path), isExternal = true))).toString
+      // TODO fix
+      val result = p(input, module(input)(_, FileInfo(File(path), isExternal = true)))
       if (result != expected) {
         println(s"Result:\n$result\n===\nExpected:\n$expected")
         assert(false)

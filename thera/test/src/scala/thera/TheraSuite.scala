@@ -12,6 +12,8 @@ object TheraSuite extends TestSuite {
   val tests = Tests {
     def read(name: String) = readResource(s"/evaluate/$name")
 
+    def getTemplateFile(name: String): File = new File(getClass.getResource(s"/evaluate/$name").getFile)
+
     test("File-defined") {
       def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
         implicit val c = ctx
@@ -67,10 +69,9 @@ object TheraSuite extends TestSuite {
     }
 
     test("templating capabilities from file") {
-      new File(getClass.getResource("/evaluate/templating-capabilities/body").getFile)
-      val bodySrc = new File(getClass.getResource("/evaluate/templating-capabilities/body").getFile)//read("/templating-capabilities/body")
+      val bodySrc = getTemplateFile("templating-capabilities/body")
       val bodyExpected = read("/templating-capabilities/body.check")
-      val templateSrc = new File(getClass.getResource("/evaluate/templating-capabilities/template").getFile)//read("/templating-capabilities/template")
+      val templateSrc = getTemplateFile("templating-capabilities/template")
 
       val body = Thera(bodySrc)
       val func = Thera(templateSrc).mkFunction(body.context)
@@ -80,7 +81,7 @@ object TheraSuite extends TestSuite {
     }
 
     test("Invalid lambda usage in template") {
-      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/lambda").getFile)
+      val templateSrc = getTemplateFile("errors-templates/lambda")
 
       val error = intercept[reporting.Error] {
         Thera(templateSrc)
@@ -93,7 +94,7 @@ object TheraSuite extends TestSuite {
     }
 
     test("YAML parsing error in template") {
-      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/yaml").getFile)
+      val templateSrc = getTemplateFile("errors-templates/yaml")
 
       val error = intercept[reporting.Error] {
         Thera(templateSrc)
@@ -106,7 +107,7 @@ object TheraSuite extends TestSuite {
     }
 
     test("Invalid syntax error 1 in template") {
-      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/invalid-syntax-1").getFile)
+      val templateSrc = getTemplateFile("errors-templates/invalid-syntax-1")
 
       val error = intercept[reporting.Error] {
         Thera(templateSrc)
@@ -119,7 +120,7 @@ object TheraSuite extends TestSuite {
     }
 
     test("Invalid syntax error 2 in template") {
-      val templateSrc = new File(getClass.getResource("/evaluate/errors-templates/invalid-syntax-2").getFile)
+      val templateSrc = getTemplateFile("errors-templates/invalid-syntax-2")
 
       val error = intercept[reporting.Error] {
         Thera(templateSrc)
