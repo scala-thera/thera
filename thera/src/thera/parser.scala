@@ -6,9 +6,9 @@ import thera.reporting.FileInfo
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P](implicit fileInfo: FileInfo, input: String): P[Template] = (header(fileInfo).? ~ body() ~ End).map {
-    case (Some((args, h)), t) => Template(args, h, t)
-    case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
+  def module[_: P](input: String)(implicit fileInfo: FileInfo): P[Template] = (header(fileInfo).? ~ body() ~ End).map {
+    case (Some((args, h)), t) => Template(args, h, t, input)
+    case (None           , t) => Template(Nil , ValueHierarchy.empty, t, input)
   }
 }
 

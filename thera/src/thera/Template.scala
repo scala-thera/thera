@@ -51,8 +51,9 @@ import thera.reporting.{EvaluationError, FileInfo, InternalEvaluationError, Inva
  * @param context – constant variables defined in the template.
  * @param body – the body of the template. Can refer to the variables and
  *               templates defined in predefinedVars and bound to argNames.
+ * @param input - the whole template as a string. Used for error reporting.
  */
-case class Template(argNames: List[String], context: ValueHierarchy, body: Body)(implicit fileInfo: FileInfo, input: String) {
+case class Template(argNames: List[String], context: ValueHierarchy, body: Body, input: String)(implicit fileInfo: FileInfo) {
   def mkString(implicit ctx: ValueHierarchy =
     ValueHierarchy.empty): String =
     evaluate(ctx) match {

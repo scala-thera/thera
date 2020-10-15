@@ -19,5 +19,3 @@ case class ParserError(path: String, line: Int, column: Int, codeSnippet: String
 
 case class EvaluationError(path: String, line: Int, column: Int, codeSnippet: String, errorType: EvaluationErrorType) extends
   Error(path, line, column, codeSnippet, errorType.toErrorMessage)
-
-case class InternalEvaluationError(errorType: EvaluationErrorType) extends Exception

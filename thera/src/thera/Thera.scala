@@ -22,7 +22,7 @@ object Thera {
   }
 
   private def buildTemplate(src: String, fileInfo: FileInfo): Template =
-    fastparse.parse(src, parser.module(_, fileInfo, src)) match {
+    fastparse.parse(src, parser.module(src)(_, fileInfo)) match {
       case Success(result, _) => result
       case f: Failure =>
         val code = getCodeSnippetFromParsingFailure(f)
