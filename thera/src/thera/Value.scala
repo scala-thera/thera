@@ -116,8 +116,7 @@ trait ValueHierarchy extends Value {
 
   final def apply(path: List[String]): Value = get(path) match {
     case null =>
-      // TODO NonExistentNonTopLevelVariableError
-      throw new RuntimeException(s"Value not found: ${path.mkString(".")}")
+      throw InternalParserError(NonExistentNonTopLevelVariableError(path.mkString(".")))
     case x => x
   }
 

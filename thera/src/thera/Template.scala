@@ -1,7 +1,7 @@
 package thera
 
 import thera.reporting.Utils.{getLine, indexToPosition}
-import thera.reporting.{EvaluationError, FileInfo, InternalEvaluationError, InvalidFunctionUsageError}
+import thera.reporting.{EvaluationError, FileInfo, InternalEvaluationError, InternalParserError, InvalidFunctionUsageError, NonExistentNonTopLevelVariableError, ParserError}
 
 /**
  * A template is a mixture of text, variables and calls to other templates.
@@ -111,15 +111,21 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
 
     node.node match {
       case Text(str) => Str(str)
-      case Variable(path) => ctx(path) match {
-        case x: Str => x
-        case _ if !inFunctionCall =>
-          val function = path.mkString(".")
+      case Variable(path) => try {
+        ctx(path) match {
+          case x: Str => x
+          case _ if !inFunctionCall =>
+            val function = path.mkString(".")
 
-          val (line, column, code) = getLineColumnCode(function)
+            val (line, column, code) = getLineColumnCode(function)
 
-          throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(function))
-        case x => x
+            throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(function))
+          case x => x
+        }
+      } catch {
+        case InternalParserError(e @ NonExistentNonTopLevelVariableError(variable)) =>
+          val (line, column, code) = getLineColumnCode(variable)
+          throw ParserError(filename, line, column, code, e)
       }
       case Call(path, argsNodes) =>
         val f: Function = ctx(path) match {
@@ -144,7 +150,6 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
           f(args)
         } catch {
           case InternalEvaluationError(e) =>
-            val filename = fileInfo.file.value
             val functionName = path.mkString(".")
 
             val (line, column, code) = getLineColumnCode(functionName)
