@@ -1,7 +1,5 @@
 package thera.reporting
 
-import thera.Value
-
 sealed trait ErrorType {
   def toErrorMessage: String
 }
@@ -34,7 +32,7 @@ case object SyntaxError extends ParserErrorType {
 
 sealed trait EvaluationErrorType extends ErrorType
 
-case class WrongArgumentTypeError(expected: Value, found: Value) extends EvaluationErrorType {
+case class WrongArgumentTypeError(expected: String, found: String) extends EvaluationErrorType {
   override def toErrorMessage: String = f"Incorrect argument type. Expected: $expected, found: $found"
 }
 

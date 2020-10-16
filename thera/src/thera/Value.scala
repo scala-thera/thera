@@ -32,26 +32,43 @@ case class Function(f: List[Value] => Str) extends Value with Function1[List[Val
 }
 
 object Function {
-  def function[R1 <: Value](f: (R1) => Str) = Function {
-    case (r1: R1 @unchecked) :: Nil =>
-      // TODO If wrong type for r1, WrongArgumentTypeError
+
+  def function[R1 <: Value](f: (R1) => Str)(implicit m1: Manifest[R1])  = Function {
+    case m1(r1) :: Nil =>
       f(r1)
+    case r1 :: Nil =>
+      val m1Class = m1.runtimeClass
+      val r1Class = r1.getClass
+      throw InternalEvaluationError(WrongArgumentTypeError(m1Class.getTypeName, r1Class.getTypeName))
     case x =>
       throw InternalEvaluationError(WrongNumberOfArgumentsError(1, x.length))
   }
 
-  def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Str) = Function {
-    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: Nil =>
-      // TODO If wrong type for r1 or r2, WrongArgumentTypeError
+  def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Str)(implicit m1: Manifest[R1], m2: Manifest[R2]) = Function {
+    case m1(r1) :: m2(r2) :: Nil =>
       f(r1, r2)
+    case r1 :: r2 :: Nil =>
+      val m1Class = m1.runtimeClass
+      val r1Class = r1.getClass
+
+      if (r1Class != m1Class) throw InternalEvaluationError(WrongArgumentTypeError(m1Class.getTypeName, r1Class.getTypeName))
+      else throw InternalEvaluationError(WrongArgumentTypeError(m2.runtimeClass.getTypeName, r2.getClass.getTypeName))
     case x =>
       throw InternalEvaluationError(WrongNumberOfArgumentsError(2, x.length))
   }
 
-  def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3) => Str) = Function {
-    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: (r3: R3 @unchecked) :: Nil =>
-      // TODO If wrong type for r1 or r2 or r3, WrongArgumentTypeError
+  def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3) => Str)(implicit m1: Manifest[R1], m2: Manifest[R2], m3: Manifest[R3]) = Function {
+    case m1(r1) :: m2(r2) :: m3(r3) :: Nil =>
       f(r1, r2, r3)
+    case r1 :: r2 :: r3 :: Nil =>
+      val m1Class = m1.runtimeClass
+      val r1Class = r1.getClass
+      val m2Class = m2.runtimeClass
+      val r2Class = r2.getClass
+
+      if (r1Class != m1Class) throw InternalEvaluationError(WrongArgumentTypeError(m1Class.getTypeName, r1Class.getTypeName))
+      else if (r2Class != m1Class) throw InternalEvaluationError(WrongArgumentTypeError(m2Class.getTypeName, r2Class.getTypeName))
+      else throw InternalEvaluationError(WrongArgumentTypeError(m3.runtimeClass.getTypeName, r3.getClass.getTypeName))
     case x =>
       throw InternalEvaluationError(WrongNumberOfArgumentsError(3, x.length))
   }
