@@ -12,11 +12,13 @@ case object YamlError extends ParserErrorType {
   override def toErrorMessage: String = "Syntax error in YAML header"
 }
 
-case class NonExistentTopLevelVariableError(variable: String) extends ParserErrorType {
+sealed abstract class NonExistentVariableError(val variable: String) extends ParserErrorType
+
+case class NonExistentTopLevelVariableError(override val variable: String) extends NonExistentVariableError(variable) {
   override def toErrorMessage: String = f"Error in the variable name: non-existent top-level variable $variable"
 }
 
-case class NonExistentNonTopLevelVariableError(variable: String) extends ParserErrorType {
+case class NonExistentNonTopLevelVariableError(override val variable: String) extends NonExistentVariableError(variable) {
   override def toErrorMessage: String = f"Error in the variable name: non-existent non-top-level variable $variable"
 }
 

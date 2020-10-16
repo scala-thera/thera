@@ -1,7 +1,7 @@
 package thera
 
 import thera.reporting.Utils.{getLine, indexToPosition}
-import thera.reporting.{EvaluationError, FileInfo, InternalEvaluationError, InternalParserError, InvalidFunctionUsageError, NonExistentNonTopLevelVariableError, ParserError}
+import thera.reporting._
 
 /**
  * A template is a mixture of text, variables and calls to other templates.
@@ -123,8 +123,8 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
           case x => x
         }
       } catch {
-        case InternalParserError(e @ NonExistentNonTopLevelVariableError(variable)) =>
-          val (line, column, code) = getLineColumnCode(variable)
+        case InternalParserError(e: NonExistentVariableError) =>
+          val (line, column, code) = getLineColumnCode(e.variable)
           throw ParserError(filename, line, column, code, e)
       }
       case Call(path, argsNodes) =>

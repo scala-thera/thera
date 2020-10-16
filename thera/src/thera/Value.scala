@@ -167,8 +167,8 @@ object ValueHierarchy {
           case Nil => null
           case name :: Nil => valueFromNode(m(name).orNull)
           case name :: rest =>
-            // TODO When the following line is null, NonExistentTopLevelVariableError
             m(name).orNull match {
+              case null => throw InternalParserError(NonExistentTopLevelVariableError(path.mkString(".")))
               case x if x.isObject => searchInMapping(rest, x.asObject.orNull)
               case _ => null
           }
