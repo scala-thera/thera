@@ -48,14 +48,6 @@ object TheraSuite extends TestSuite {
       }
     }
 
-    test("wrong-number-of-params") { // TODO to modify
-      val f = function[Value] { _ => Str("") }
-      val e = intercept[RuntimeException] {
-        Thera("${f: a, b}").mkString(names("f" -> f))
-      }
-      assert(e.getMessage == "Argument list List(Str(a), Str(b)) is inapplicable to 1-ary function")
-    }
-
     test("templating capabilities") {
       val bodySrc = read("/templating-capabilities/body")
       val bodyExpected = read("/templating-capabilities/body.check")
@@ -84,10 +76,10 @@ object TheraSuite extends TestSuite {
       val templateSrc = getTemplateFile("errors-templates/invalid-function-usage")
 
       val error = intercept[reporting.Error] {
-        Thera(templateSrc)
+        Thera(templateSrc).mkString
       }
 
-      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 31,
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 30,
         """Hello! We are located at the ${foreach}!""", InvalidFunctionUsageError("foreach"))
 
       assert(error == expected)
@@ -149,11 +141,11 @@ object TheraSuite extends TestSuite {
       val templateSrc = getTemplateFile("errors-templates/non-existent-function")
 
       val error = intercept[reporting.Error] {
-        Thera(templateSrc)
+        Thera(templateSrc).mkString
       }
 
       val expected = ParserError(templateSrc.getAbsolutePath, 18, 1,
-        """${foreach: ${system.planets}, ${planet => \""", NonExistentFunctionError("foreachs"))
+        """${foreachs: ${system.planets}, ${planet => \""", NonExistentFunctionError("foreachs"))
 
       assert(error == expected)
     }
@@ -162,10 +154,10 @@ object TheraSuite extends TestSuite {
       val templateSrc = getTemplateFile("errors-templates/non-existent-non-top-level-variable")
 
       val error = intercept[reporting.Error] {
-        Thera(templateSrc)
+        Thera(templateSrc).mkString
       }
 
-      val expected = ParserError(templateSrc.getAbsolutePath, 15, 31,
+      val expected = ParserError(templateSrc.getAbsolutePath, 15, 30,
         """Hello! We are located at the ${system.namee}!""", NonExistentNonTopLevelVariableError("system.namee"))
 
       assert(error == expected)
@@ -175,10 +167,10 @@ object TheraSuite extends TestSuite {
       val templateSrc = getTemplateFile("errors-templates/non-existent-top-level-variable")
 
       val error = intercept[reporting.Error] {
-        Thera(templateSrc)
+        Thera(templateSrc).mkString
       }
 
-      val expected = ParserError(templateSrc.getAbsolutePath, 15, 31,
+      val expected = ParserError(templateSrc.getAbsolutePath, 15, 30,
         """Hello! We are located at the ${ssystem.name}!""", NonExistentTopLevelVariableError("ssystem.name"))
 
       assert(error == expected)
@@ -188,7 +180,7 @@ object TheraSuite extends TestSuite {
       val templateSrc = getTemplateFile("errors-templates/wrong-argument-type-function")
 
       val error = intercept[reporting.Error] {
-        Thera(templateSrc)
+        Thera(templateSrc).mkString
       }
 
       val expected = EvaluationError(templateSrc.getAbsolutePath, 18, 1,
@@ -201,7 +193,7 @@ object TheraSuite extends TestSuite {
       val templateSrc = getTemplateFile("errors-templates/wrong-arguments-number-function")
 
       val error = intercept[reporting.Error] {
-        Thera(templateSrc)
+        Thera(templateSrc).mkString
       }
 
       val expected = EvaluationError(templateSrc.getAbsolutePath, 18, 1,

@@ -1,3 +1,13 @@
-Template(List(),<valuehierarchy>,Body(List(Text(I have numbers ), Variable(List(one)), Text(, ), Variable(List(two)), Text( and ), Variable(List(three, four)), Text(. If I add them, here is what I get: ), Variable(List(three-frag)), Text(. I can also do ), Call(List(fun_frag),List(Body(List(Text(simple))), Body(List(Text(nice))))), Text( and ), Call(List(fun_frag),List(Body(List(Text(complex ,
-args))), Body(List(Text(awesome))))), Text( calls. I hope to make $1,000,000 on this stuff I can also call ), Call(List(fun_frag),List(Body(List(Call(List(fun_frag),List(Body(List(Text($1,000,000))), Body(List(Text(good))))))), Body(List(Text(recursive))))), Text(. We can also escape with "\".
-))))
+Template(List(),<valuehierarchy>,Body(List(IndexedNode(Text(I have numbers ),70), IndexedNode(Variable(List(one)),85), IndexedNode(Text(, ),91), IndexedNode(Variable(List(two)),93), IndexedNode(Text( and ),101), IndexedNode(Variable(List(three, four)),106), IndexedNode(Text(. If I add them, here is what I get: ),119), IndexedNode(Variable(List(three-frag)),156), IndexedNode(Text(. I can also do ),171), IndexedNode(Call(List(fun_frag),List(Body(List(IndexedNode(Text(simple),199))), Body(List(IndexedNode(Text(nice),207))))),187), IndexedNode(Text( and ),212), IndexedNode(Call(List(fun_frag),List(Body(List(IndexedNode(Text(complex ,
+args),229))), Body(List(IndexedNode(Text(awesome),246))))),217), IndexedNode(Text( calls. I hope to make $1,000,000 on this stuff I can also call ),254), IndexedNode(Call(List(fun_frag),List(Body(List(IndexedNode(Call(List(fun_frag),List(Body(List(IndexedNode(Text($1,000,000),343))), Body(List(IndexedNode(Text(good),358))))),331))), Body(List(IndexedNode(Text(recursive),365))))),319), IndexedNode(Text(. We can also escape with "\".
+),375))),---
+title: This stuff works!
+one: "1"
+two: "2"
+three:
+  four: "4"
+---
+I have numbers ${one}, ${ two } and ${three.four}. If I add them, here is what I get: ${  three-frag}. I can also do ${fun_frag: simple, nice} and ${fun_frag: complex \,
+args,
+awesome} calls. I hope to make \$1,000,000 on this stuff I can also call ${fun_frag: ${fun_frag: \$1\,000\,000, good}, recursive}. We can also escape with "\\".
+)

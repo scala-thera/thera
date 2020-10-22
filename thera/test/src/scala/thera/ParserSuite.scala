@@ -12,7 +12,6 @@ object ParserSuite extends TestSuite {
     def check(name: String): Unit = {
       val path = s"/parser/$name"
       val (input, expected) = readIO(path)
-      // TODO fix
       val result = p(input, module(input)(_, FileInfo(File(path), isExternal = true)))
       if (result != expected) {
         println(s"Result:\n$result\n===\nExpected:\n$expected")
@@ -35,7 +34,7 @@ object ParserSuite extends TestSuite {
       val result = p("${f: a ${b} c, ${d}}", expr(_))
       assert(
         result ==
-         "Call(List(f),List(Body(List(Text(a ), Variable(List(b)), Text( c))), Body(List(Variable(List(d))))))"
+         "Call(List(f),List(Body(List(IndexedNode(Text(a ),5), IndexedNode(Variable(List(b)),7), IndexedNode(Text( c),11))), Body(List(IndexedNode(Variable(List(d)),15)))))"
       )
     }
 
@@ -59,7 +58,7 @@ object ParserSuite extends TestSuite {
       val result = p("${f: \\\n foo}", expr(_))
       assert(
         result ==
-         "Call(List(f),List(Body(List(Text( foo)))))"
+         "Call(List(f),List(Body(List(IndexedNode(Text( foo),7)))))"
       )
     }
 
@@ -67,7 +66,7 @@ object ParserSuite extends TestSuite {
       val result = p("$foo", body()(_))
       assert(
         result ==
-        "Body(List(Variable(List(foo))))"
+        "Body(List(IndexedNode(Variable(List(foo)),0)))"
       )
     }
 
@@ -75,7 +74,7 @@ object ParserSuite extends TestSuite {
       val result = p("$foo.bar", body()(_))
       assert(
         result ==
-        "Body(List(Variable(List(foo)), Text(.bar)))"
+        "Body(List(IndexedNode(Variable(List(foo)),0), IndexedNode(Text(.bar),4)))"
       )
     }
 
@@ -83,7 +82,7 @@ object ParserSuite extends TestSuite {
       val result = p("${f: foo, ${bar}\\s  }", expr(_))
       assert(
         result ==
-        "Call(List(f),List(Body(List(Text(foo))), Body(List(Variable(List(bar))))))"
+        "Call(List(f),List(Body(List(IndexedNode(Text(foo),5))), Body(List(IndexedNode(Variable(List(bar)),10)))))"
       )
     }
 
@@ -91,7 +90,7 @@ object ParserSuite extends TestSuite {
       val result = p("${f: foo, ${f => x} }", expr(_))
       assert(
         result ==
-        "Call(List(f),List(Body(List(Text(foo))), Lambda(List(f),Body(List(Text(x))))))"
+        "Call(List(f),List(Body(List(IndexedNode(Text(foo),5))), Lambda(List(f),Body(List(IndexedNode(Text(x),17))))))"
       )
     }
   }
