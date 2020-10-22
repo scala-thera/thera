@@ -122,9 +122,7 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
           case x: Str => x
           case _ if !inFunctionCall =>
             val function = path.mkString(".")
-
             val (line, column, code) = getLineColumnCode(function)
-
             throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(function))
           case x => x
         }
@@ -145,6 +143,7 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
             val (line, column, code) = getLineColumnCode(e.name)
             throw ParserError(filename, line, column, code, e)
         }
+
         val args: List[Value] = argsNodes.map {
           case Lambda(argNames, body) =>
             Function { argValues =>
@@ -163,9 +162,7 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
         } catch {
           case InternalEvaluationError(e) =>
             val functionName = path.mkString(".")
-
             val (line, column, code) = getLineColumnCode(functionName)
-
             throw EvaluationError(filename, line, column, code, e)
         }
     }

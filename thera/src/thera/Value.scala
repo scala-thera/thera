@@ -117,7 +117,8 @@ trait ValueHierarchy extends Value {
 
   final def apply(path: List[String]): Value = get(path) match {
     case null =>
-      throw InternalParserError(NonExistentNonTopLevelVariableError(path.mkString(".")))
+      if (path.length == 1) throw InternalParserError(NonExistentFunctionError(path.mkString(".")))
+      else throw InternalParserError(NonExistentNonTopLevelVariableError(path.mkString(".")))
     case x => x
   }
 
@@ -145,9 +146,7 @@ trait ValueHierarchy extends Value {
 object ValueHierarchy {
   def apply(f: List[String] => Value): ValueHierarchy = new ValueHierarchy {
     protected def resolvePath(name: List[String]): Value = {
-      val value = f(name)
-      value
-//      if (value != null) value else throw InternalParserError(NonExistentFunctionError(name.mkString("."))) // TODO, both invalid function usage and non existent function fail here, also wrong number og arguments
+      f(name)
     }
   }
 
