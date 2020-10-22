@@ -33,7 +33,7 @@ case class Function(f: List[Value] => Str) extends Value with Function1[List[Val
 
 object Function {
 
-  def function[R1 <: Value](f: (R1) => Str)(implicit m1: Manifest[R1])  = Function {
+  def function[R1 <: Value](f: (R1) => Str)(implicit m1: Manifest[R1]) = Function {
     case m1(r1) :: Nil =>
       f(r1)
     case r1 :: Nil =>
@@ -50,9 +50,8 @@ object Function {
     case r1 :: r2 :: Nil =>
       val m1Class = m1.runtimeClass
       val r1Class = r1.getClass
-
-      if (r1Class != m1Class) throw InternalEvaluationError(WrongArgumentTypeError(m1Class.getTypeName, r1Class.getTypeName))
-      else throw InternalEvaluationError(WrongArgumentTypeError(m2.runtimeClass.getTypeName, r2.getClass.getTypeName))
+      val (expected, found) = if (r1Class != m1Class) (m1Class.getTypeName, r1Class.getTypeName) else (m2.runtimeClass.getTypeName, r2.getClass.getTypeName)
+      throw InternalEvaluationError(WrongArgumentTypeError(expected, found))
     case x =>
       throw InternalEvaluationError(WrongNumberOfArgumentsError(2, x.length))
   }
@@ -65,10 +64,12 @@ object Function {
       val r1Class = r1.getClass
       val m2Class = m2.runtimeClass
       val r2Class = r2.getClass
-
-      if (r1Class != m1Class) throw InternalEvaluationError(WrongArgumentTypeError(m1Class.getTypeName, r1Class.getTypeName))
-      else if (r2Class != m1Class) throw InternalEvaluationError(WrongArgumentTypeError(m2Class.getTypeName, r2Class.getTypeName))
-      else throw InternalEvaluationError(WrongArgumentTypeError(m3.runtimeClass.getTypeName, r3.getClass.getTypeName))
+      val (expected, found) = {
+        if (r1Class != m1Class) (m1Class.getTypeName, r1Class.getTypeName)
+        else if (r2Class != m1Class) (m2Class.getTypeName, r2Class.getTypeName)
+        else (m3.runtimeClass.getTypeName, r3.getClass.getTypeName)
+      }
+      throw InternalEvaluationError(WrongArgumentTypeError(expected, found))
     case x =>
       throw InternalEvaluationError(WrongNumberOfArgumentsError(3, x.length))
   }
@@ -144,8 +145,9 @@ trait ValueHierarchy extends Value {
 object ValueHierarchy {
   def apply(f: List[String] => Value): ValueHierarchy = new ValueHierarchy {
     protected def resolvePath(name: List[String]): Value = {
-      // TODO If f(name) is null, NonExistentFunctionError
-      f(name)
+      val value = f(name)
+      value
+//      if (value != null) value else throw InternalParserError(NonExistentFunctionError(name.mkString("."))) // TODO, both invalid function usage and non existent function fail here, also wrong number og arguments
     }
   }
 

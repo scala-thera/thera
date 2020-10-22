@@ -3,6 +3,10 @@ package thera
 import thera.reporting.Utils.{getLine, indexToPosition}
 import thera.reporting._
 
+import scala.concurrent.ExecutionContext.Implicits.global
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
+
 /**
  * A template is a mixture of text, variables and calls to other templates.
  * The variables and names of other templates are resolved against a runtime
@@ -99,13 +103,15 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
 
     def getLineColumnCode(name: String): (Int, Int, String) = {
       if (fileInfo.isExternal) {
-        val (line, column) = indexToPosition(input, node.index)
-        val code = getLine(name, filename)._1
-        (line, column, code)
+        val lineCol = Future { indexToPosition(input, node.index) }
+        val code = Future { getLine(name, filename)._1 }
+        val (line, column) = Await.result(lineCol, Duration.Inf)
+        (line, column, Await.result(code, Duration.Inf))
       } else {
-        val column = indexToPosition(input, node.index)._2
-        val (code, line) = getLine(name, filename)
-        (line, column, code)
+        val column = Future { indexToPosition(input, node.index)._2 }
+        val codeLine = Future { getLine(name, filename) }
+        val (code, line) = Await.result(codeLine, Duration.Inf)
+        (line, Await.result(column, Duration.Inf), code)
       }
     }
 
@@ -128,10 +134,16 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
           throw ParserError(filename, line, column, code, e)
       }
       case Call(path, argsNodes) =>
-        val f: Function = ctx(path) match {
-          case x: Function => x
-          case x => throw new RuntimeException(
-            s"Expected function at path ${path.mkString(".")}, got: $x")
+        val f: Function = try {
+          ctx(path) match {
+            case x: Function => x
+            case x => throw new RuntimeException(
+              s"Expected function at path ${path.mkString(".")}, got: $x")
+          }
+        } catch {
+          case InternalParserError(e: NonExistentFunctionError) =>
+            val (line, column, code) = getLineColumnCode(e.name)
+            throw ParserError(filename, line, column, code, e)
         }
         val args: List[Value] = argsNodes.map {
           case Lambda(argNames, body) =>
