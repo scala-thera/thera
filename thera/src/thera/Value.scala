@@ -117,8 +117,9 @@ trait ValueHierarchy extends Value {
 
   final def apply(path: List[String]): Value = get(path) match {
     case null =>
-      if (path.length == 1) throw InternalParserError(NonExistentFunctionError(path.mkString(".")))
-      else throw InternalParserError(NonExistentNonTopLevelVariableError(path.mkString(".")))
+      val name = path.mkString(".")
+      if (path.length == 1) throw InternalParserError(NonExistentFunctionError(name))
+      else throw InternalParserError(NonExistentNonTopLevelVariableError(name))
     case x => x
   }
 
@@ -145,12 +146,10 @@ trait ValueHierarchy extends Value {
 
 object ValueHierarchy {
   def apply(f: List[String] => Value): ValueHierarchy = new ValueHierarchy {
-    protected def resolvePath(name: List[String]): Value = {
-      f(name)
-    }
+    protected def resolvePath(name: List[String]): Value = f(name)
   }
 
-  def map(m: Map[List[String], Value]) = ValueHierarchy { path =>
+  def map(m: Map[List[String], Value]): ValueHierarchy = ValueHierarchy { path =>
     m.get(path).orNull
   }
 

@@ -121,9 +121,9 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
         ctx(path) match {
           case x: Str => x
           case _ if !inFunctionCall =>
-            val function = path.mkString(".")
-            val (line, column, code) = getLineColumnCode(function)
-            throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(function))
+            val functionName = path.mkString(".")
+            val (line, column, code) = getLineColumnCode(functionName)
+            throw EvaluationError(filename, line, column, code, InvalidFunctionUsageError(functionName))
           case x => x
         }
       } catch {
