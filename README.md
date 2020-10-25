@@ -1,4 +1,5 @@
 # Thera - the templating engine for Scala
+
 ![CI](https://github.com/anatoliykmetyuk/thera/workflows/CI/badge.svg) [![Gitter](https://badges.gitter.im/akmetiuk/thera.svg)](https://gitter.im/akmetiuk/thera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ```scala
@@ -47,23 +48,24 @@ println(Thera(template).mkString)
 
 Thera is a template engine for Scala. It is intended to help people build static websites (such as ones deployed to [GitHub Pages](https://pages.github.com/)) in Scala.
 
-- [Getting started](#getting-started)
-- [Templates](#templates)
-- [ValueHierarchy](#valuehierarchy)
-- [Creating and using ValueHierarchies in templates](#creating-and-using-valuehierarchies-in-templates)
-- [Functions](#functions)
-- [Predefined functions](#predefined-functions)
-- [Lambdas](#lambdas)
-- [Syntactic rules](#syntactic-rules)
-  * [Escapes](#escapes)
-  * [Whitespace parsing](#whitespace-parsing)
-- [Philosophy](#philosophy)
-- [Roadmap](#roadmap)
-- [Contributions](#contributions)
+- [Thera - the templating engine for Scala](#thera---the-templating-engine-for-scala)
+  - [Getting started](#getting-started)
+  - [Templates](#templates)
+  - [ValueHierarchy](#valuehierarchy)
+  - [Creating and using ValueHierarchies in templates](#creating-and-using-valuehierarchies-in-templates)
+  - [Functions](#functions)
+  - [Predefined functions](#predefined-functions)
+  - [Lambdas](#lambdas)
+  - [Syntactic rules](#syntactic-rules)
+    - [Escapes](#escapes)
+    - [Whitespace parsing](#whitespace-parsing)
+  - [Philosophy](#philosophy)
+  - [Contributions](#contributions)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ## Getting started
+
 Requires Scala 2.13. Add the following dependency to your SBT project:
 
 ```scala
@@ -83,6 +85,7 @@ import $ivy.`com.akmetiuk::thera:0.2.0-M2`
 ```
 
 ## Templates
+
 A template consists of two parts – header and body. They are delimited by `---`. A header is formatted as [Yaml](https://yaml.org/) and defines the variables accessible to the template body. The template body can access these variables via `${path.to.variable}` syntax. You can process the template via `Thera(templateString).mkString` syntax.
 
 ```scala
@@ -101,7 +104,18 @@ println(Thera(person).mkString)  // Tom is aged 40
 
 ```
 
+You can also create a template from a file.
+
+```scala
+
+val personFile = new File("person-template")
+
+println(Thera(personFile).mkString)  // Tom is aged 40
+
+```
+
 ## ValueHierarchy
+
 A template context is the hierarchy of variables accessible to the template when it is processed. Yaml header is parsed to such a hierarchy.
 
 Internally the hierarchy is represented as a `ValueHierarchy`. Given `h: ValueHierarchy`, you can query the member variables programmatically from Scala via `h("path.to.variable")` syntax. This call will return a `Value`. A Value can be one of the following:
@@ -113,6 +127,7 @@ Internally the hierarchy is represented as a `ValueHierarchy`. Given `h: ValueHi
 - Throws a RuntimeException - if the queried path doesn't point to a variable
 
 ## Creating and using ValueHierarchies in templates
+
 You can create a `ValueHierarchy` from Yaml, or a Scala `Map` using methods defined in its companion object. If you defined a value hierarchy as an implicit value, the `mkString` method of a template will implicitly pick it up and add to the template context:
 
 ```scala
@@ -143,6 +158,7 @@ println(Thera(book).mkString)
 ```
 
 ## Functions
+
 You can define functions, put them in the template context and call them from a template. You can do so via methods in the `Function` companion object. For example:
 
 ```scala
@@ -208,6 +224,7 @@ println(Thera(wrapperTml).mkString)
 ```
 
 ## Predefined functions
+
 Currently the following functions are available out of the box in Thera:
 
 - `id: Str => Str` – identity, evaluates to its input.
@@ -217,8 +234,8 @@ Currently the following functions are available out of the box in Thera:
 - `outdent: (size: Str, text: Str) => Str` – outdents every line of `text` by `size`. Useful when working with lambdas.
 
 ## Lambdas
-If a function you are calling accepts another function as an argument, you can define this other function inline using a lambda syntax: `${ arg1, arg2, ... => body }`. For example:
 
+If a function you are calling accepts another function as an argument, you can define this other function inline using a lambda syntax: `${ arg1, arg2, ... => body }`. For example:
 
 ```scala
 val article =
@@ -235,10 +252,13 @@ println(Thera(article).mkString)
 ```
 
 ## Syntactic rules
+
 ### Escapes
+
 Symbols `$`, `{` and `}` are significant symbols for the template. If you want to use them as plain text, you need to escape them with `\`, e.g. `\$`.
 
 ### Whitespace parsing
+
 In function calls and lambdas, we need to decide when to parse the whitespaces and when to drop them for ergonomics reasons. For example: `${foreachSep: $tags, \, , ${x => Tag $x}}` – here, the whitespace before `$tags` and `\,` is for convenience of reading rather than for the output. Hence, in arguments to the function calls, we always drop initial whitespaces and start the argument parsing from the first non-whitespace character.
 
 You can modify this behavior by escaping the whitespace: `${foreachSep: $tags,\ \, , ${x => Tag $x}}` – here, the separator will be `" , "` instead of `", "`.
@@ -252,12 +272,11 @@ ${foreach: ${system.planets}, ${planet => \
 ```
 
 ## Philosophy
+
 This project started as a static website generator because there wasn't one for Scala and I needed one to generate my blog. Since then, however, I realised that Scala doesn't need a static website generator. It has a powerful enough ecosystem for a user to effortlessly unroll their own logic for generating a website using existing libraries. For instance, my [blog](https://akmetiuk.com/) uses [Ammonite](https://ammonite.io/) and [os-lib](https://github.com/lihaoyi/os-lib) in conjunction with [Pandoc](https://pandoc.org/), a [Docker](https://www.docker.com/) image that defines the environment with Pandoc in it and [GitHub Actions](https://github.com/features/actions) that runs the Docker and deploys the website to [GitHub Pages](https://pages.github.com/). You can have a look at the sources of the blog [here](https://github.com/anatoliykmetyuk/anatoliykmetyuk.github.io).
 
 The only missing piece in the ecosystem is a good templating engine. Thera attempts to provide such an engine for Scala. It doesn't aim to be a markdown processor or a website generator since these tasks can already be easily done using other tools.
 
-## Roadmap
-The main thing that Thera currently lacks is a good error reporting mechanism.
-
 ## Contributions
+
 If you would like to collaborate on this project, do not hesitate to contact me about it!
