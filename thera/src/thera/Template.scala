@@ -3,10 +3,6 @@ package thera
 import thera.reporting.Utils.{getLine, indexToPosition}
 import thera.reporting._
 
-import scala.concurrent.ExecutionContext.Implicits.global
-import scala.concurrent.{Await, Future}
-import scala.concurrent.duration.Duration
-
 /**
  * A template is a mixture of text, variables and calls to other templates.
  * The variables and names of other templates are resolved against a runtime
@@ -103,15 +99,13 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
 
     def getLineColumnCode(name: String): (Int, Int, String) = {
       if (fileInfo.isExternal) {
-        val lineCol = Future { indexToPosition(input, node.index) }
-        val code = Future { getLine(name, filename)._1 }
-        val (line, column) = Await.result(lineCol, Duration.Inf)
-        (line, column, Await.result(code, Duration.Inf))
+        val (line, column) = indexToPosition(input, node.index)
+        val code = getLine(name, filename)._1
+        (line, column, code)
       } else {
-        val column = Future { indexToPosition(input, node.index)._2 }
-        val codeLine = Future { getLine(name, filename) }
-        val (code, line) = Await.result(codeLine, Duration.Inf)
-        (line, Await.result(column, Duration.Inf), code)
+        val column = indexToPosition(input, node.index)._2
+        val (code, line) = getLine(name, filename)
+        (line, column, code)
       }
     }
 
@@ -127,9 +121,13 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
           case x => x
         }
       } catch {
-        case InternalParserError(e: NonExistentVariableError) =>
+        case InternalEvaluationError(e: NonExistentTopLevelVariableError) =>
           val (line, column, code) = getLineColumnCode(e.variable)
-          throw ParserError(filename, line, column, code, e)
+          throw EvaluationError(filename, line, column, code, e)
+        case _: RuntimeException =>
+          val variableName = path.mkString(".")
+          val (line, column, code) = getLineColumnCode(variableName)
+          throw EvaluationError(filename, line, column, code, NonExistentNonTopLevelVariableError(variableName))
       }
       case Call(path, argsNodes) =>
         val f: Function = try {
@@ -139,9 +137,10 @@ case class Template(argNames: List[String], context: ValueHierarchy, body: Body,
               s"Expected function at path ${path.mkString(".")}, got: $x")
           }
         } catch {
-          case InternalParserError(e: NonExistentFunctionError) =>
-            val (line, column, code) = getLineColumnCode(e.name)
-            throw ParserError(filename, line, column, code, e)
+          case _: RuntimeException =>
+            val functionName = path.mkString(".")
+            val (line, column, code) = getLineColumnCode(functionName)
+            throw EvaluationError(filename, line, column, code, NonExistentFunctionError(functionName))
         }
 
         val args: List[Value] = argsNodes.map {

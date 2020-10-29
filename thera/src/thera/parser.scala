@@ -17,7 +17,7 @@ trait HeaderParser { this: parser.type =>
     (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
       case (args, Nil  ) => Pass(args.getOrElse(Nil) -> ValueHierarchy.empty)
       case (args, lines) => Pass(args.getOrElse(Nil) ->
-        ValueHierarchy.yaml(lines.mkString("\n"), fileInfo))
+        ValueHierarchy.yamlInternal(lines.mkString("\n"))(fileInfo))
     }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(min = 0, sep = t.nl)

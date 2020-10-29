@@ -116,10 +116,7 @@ trait ValueHierarchy extends Value {
     }
 
   final def apply(path: List[String]): Value = get(path) match {
-    case null =>
-      val name = path.mkString(".")
-      if (path.length == 1) throw InternalParserError(NonExistentFunctionError(name))
-      else throw InternalParserError(NonExistentNonTopLevelVariableError(name))
+    case null => throw new RuntimeException(s"Value not found: ${path.mkString(".")}")
     case x => x
   }
 
@@ -159,7 +156,9 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
-  def yaml(src: String, fileInfo: FileInfo): ValueHierarchy = {
+  def yaml(src: String)(implicit file: sourcecode.File): ValueHierarchy = yamlInternal(src)(FileInfo(file, isExternal = false))
+
+  private[thera] def yamlInternal(src: String)(implicit fileInfo: FileInfo): ValueHierarchy = {
     def valueFromNode(node: Json): Value = {
       @annotation.tailrec
       def searchInMapping(path: List[String], m: JsonObject): Value =
@@ -168,7 +167,7 @@ object ValueHierarchy {
           case name :: Nil => valueFromNode(m(name).orNull)
           case name :: rest =>
             m(name).orNull match {
-              case null => throw InternalParserError(NonExistentTopLevelVariableError(path.mkString(".")))
+              case null => throw InternalEvaluationError(NonExistentTopLevelVariableError(path.mkString(".")))
               case x if x.isObject => searchInMapping(rest, x.asObject.orNull)
               case _ => null
           }
