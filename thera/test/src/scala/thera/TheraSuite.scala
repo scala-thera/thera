@@ -144,7 +144,7 @@ object TheraSuite extends TestSuite {
         Thera(templateSrc).mkString
       }
 
-      val expected = ParserError(templateSrc.getAbsolutePath, 18, 1,
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 18, 1,
         """${foreachs: ${system.planets}, ${planet => \""", NonExistentFunctionError("foreachs"))
 
       assert(error == expected)
@@ -157,7 +157,7 @@ object TheraSuite extends TestSuite {
         Thera(templateSrc).mkString
       }
 
-      val expected = ParserError(templateSrc.getAbsolutePath, 15, 30,
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 30,
         """Hello! We are located at the ${system.namee}!""", NonExistentNonTopLevelVariableError("system.namee"))
 
       assert(error == expected)
@@ -170,7 +170,7 @@ object TheraSuite extends TestSuite {
         Thera(templateSrc).mkString
       }
 
-      val expected = ParserError(templateSrc.getAbsolutePath, 15, 30,
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 30,
         """Hello! We are located at the ${ssystem.name}!""", NonExistentTopLevelVariableError("ssystem.name"))
 
       assert(error == expected)

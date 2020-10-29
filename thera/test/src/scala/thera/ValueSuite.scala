@@ -1,9 +1,8 @@
 package thera
 
-import utest._
-import utils._
-import ValueHierarchy._
 import thera.reporting.{FileInfo, ParserError, YamlError}
+import thera.utils._
+import utest._
 
 object ValueSuite extends TestSuite {
   val tests = Tests {
@@ -39,12 +38,10 @@ object ValueSuite extends TestSuite {
       }
 
       test("yaml") {
-        val fileInfo = FileInfo(sourcecode.File(), isExternal = false)
-
         test("arrays") {
           val vh = ValueHierarchy.yaml("""
             |keywords: [one, two, three]
-          """.stripMargin, fileInfo)
+          """.stripMargin)
           val res = vh("keywords" :: Nil)
           val expected = Arr(List(Str("one"), Str("two"), Str("three")))
           assert(res == expected)
@@ -53,7 +50,7 @@ object ValueSuite extends TestSuite {
         test("empty arrays") {
           val vh = ValueHierarchy.yaml("""
             |keywords: []
-          """.stripMargin, fileInfo)
+          """.stripMargin)
           val res = vh("keywords" :: Nil)
           val expected = Arr.empty
           assert(res == expected)
@@ -62,7 +59,7 @@ object ValueSuite extends TestSuite {
         test("arrays of json objects") {
           val vh = ValueHierarchy.yaml("""
             |stuff: [{ "foo": "bar" }]
-          """.stripMargin, fileInfo)
+          """.stripMargin)
           val res =
             vh("stuff" :: Nil).asArr.value
             .head.asValueHierarchy("foo" :: Nil)
@@ -71,13 +68,15 @@ object ValueSuite extends TestSuite {
         }
 
         test("YAML error reporting") {
+          val fileInfo = FileInfo(sourcecode.File(), isExternal = false)
+
           val error = intercept[reporting.Error] {
             ValueHierarchy.yaml("""
             |stuff: { "foo": "bar" }]
-          """.stripMargin, fileInfo)
+          """.stripMargin)
           }
 
-          val expected = ParserError(fileInfo.file.value, 76, 24, """stuff: { "foo": "bar" }]""", YamlError)
+          val expected = ParserError(fileInfo.file.value, 75, 24, """stuff: { "foo": "bar" }]""", YamlError)
           assert(error == expected)
         }
       }
