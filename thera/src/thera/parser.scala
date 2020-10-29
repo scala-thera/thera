@@ -1,21 +1,23 @@
 package thera
 
-import fastparse._, NoWhitespace._, Parsed.{ Failure, Success }
+import fastparse.NoWhitespace._
+import fastparse._
+import thera.reporting.FileInfo
 
 object parser extends HeaderParser with BodyParser with BodyUtilParser with UtilParser {
   val t = token
-  def module[_: P]: P[Template] = (header.? ~ body() ~ End).map {
-    case (Some((args, h)), t) => Template(args, h, t)
-    case (None           , t) => Template(Nil , ValueHierarchy.empty, t)
+  def module[_: P](input: String)(implicit fileInfo: FileInfo): P[Template] = (header(fileInfo).? ~ body() ~ End).map {
+    case (Some((args, h)), t) => Template(args, h, t, input)
+    case (None           , t) => Template(Nil , ValueHierarchy.empty, t, input)
   }
 }
 
 trait HeaderParser { this: parser.type =>
-  def header[_: P]: P[(List[String], ValueHierarchy)] =
+  def header[_: P](fileInfo: FileInfo): P[(List[String], ValueHierarchy)] =
     (wsnl(t.tripleDash) ~/ moduleArgs.? ~/ lines ~ wsnl(t.tripleDash)).flatMap {
       case (args, Nil  ) => Pass(args.getOrElse(Nil) -> ValueHierarchy.empty)
       case (args, lines) => Pass(args.getOrElse(Nil) ->
-        ValueHierarchy.yaml(lines.mkString("\n")))
+        ValueHierarchy.yamlInternal(lines.mkString("\n"))(fileInfo))
     }
 
   def lines[_: P]: P[Seq[String]] = t.line.!.rep(min = 0, sep = t.nl)
@@ -27,11 +29,13 @@ trait HeaderParser { this: parser.type =>
 trait BodyParser { this: parser.type =>
   def body[_: P](specialChars: String = ""): P[Body] =
     node((specialChars ++ t.defaultSpecialChars).toSeq.distinct.unwrap).rep(1)
-      .map(_.toList.filter { case Text("") => false case _ => true })
+      .map(_.toList.filter { case IndexedNode(Text(""), _)  => false case _ => true })
       .map(ns => Body(ns))
 
-  def node[_: P](specialChars: String): P[Node] =
-    expr | text(specialChars)
+  def node[_: P](specialChars: String): P[IndexedNode] =
+    (Index ~ (expr | text(specialChars))).map {
+      case (index, n) => IndexedNode(n, index)
+    }
 
 
   def text[_: P](specialChars: String): P[Text] =

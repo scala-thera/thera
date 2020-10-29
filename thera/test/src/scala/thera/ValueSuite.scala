@@ -1,8 +1,8 @@
 package thera
 
+import thera.reporting.{FileInfo, ParserError, YamlError}
+import thera.utils._
 import utest._
-import utils._
-import ValueHierarchy._
 
 object ValueSuite extends TestSuite {
   val tests = Tests {
@@ -65,6 +65,19 @@ object ValueSuite extends TestSuite {
             .head.asValueHierarchy("foo" :: Nil)
           val expected = Str("bar")
           assert(res == expected)
+        }
+
+        test("YAML error reporting") {
+          val fileInfo = FileInfo(sourcecode.File(), isExternal = false)
+
+          val error = intercept[reporting.Error] {
+            ValueHierarchy.yaml("""
+            |stuff: { "foo": "bar" }]
+          """.stripMargin)
+          }
+
+          val expected = ParserError(fileInfo.file.value, 75, 24, """stuff: { "foo": "bar" }]""", YamlError)
+          assert(error == expected)
         }
       }
     }

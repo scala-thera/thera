@@ -1,7 +1,8 @@
 package thera
 
-import scala.jdk.CollectionConverters._
 import io.circe._
+import org.yaml.snakeyaml.error.MarkedYAMLException
+import thera.reporting._
 
 /**
  * A value is data you can refer to in a template.
@@ -31,19 +32,46 @@ case class Function(f: List[Value] => Str) extends Value with Function1[List[Val
 }
 
 object Function {
-  def function[R1 <: Value](f: (R1) => Str) = Function {
-    case (r1: R1 @unchecked) :: Nil => f(r1)
-    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 1-ary function")
+
+  def function[R1 <: Value](f: (R1) => Str)(implicit m1: Manifest[R1]) = Function {
+    case m1(r1) :: Nil =>
+      f(r1)
+    case r1 :: Nil =>
+      val m1Class = m1.runtimeClass
+      val r1Class = r1.getClass
+      throw InternalEvaluationError(WrongArgumentTypeError(m1Class.getTypeName, r1Class.getTypeName))
+    case x =>
+      throw InternalEvaluationError(WrongNumberOfArgumentsError(1, x.length))
   }
 
-  def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Str) = Function {
-    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: Nil => f(r1, r2)
-    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 2-ary function")
+  def function[R1 <: Value, R2 <: Value](f: (R1, R2) => Str)(implicit m1: Manifest[R1], m2: Manifest[R2]) = Function {
+    case m1(r1) :: m2(r2) :: Nil =>
+      f(r1, r2)
+    case r1 :: r2 :: Nil =>
+      val m1Class = m1.runtimeClass
+      val r1Class = r1.getClass
+      val (expected, found) = if (r1Class != m1Class) (m1Class.getTypeName, r1Class.getTypeName) else (m2.runtimeClass.getTypeName, r2.getClass.getTypeName)
+      throw InternalEvaluationError(WrongArgumentTypeError(expected, found))
+    case x =>
+      throw InternalEvaluationError(WrongNumberOfArgumentsError(2, x.length))
   }
 
-  def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3) => Str) = Function {
-    case (r1: R1 @unchecked) :: (r2: R2 @unchecked) :: (r3: R3 @unchecked) :: Nil => f(r1, r2, r3)
-    case x => throw new RuntimeException(s"Argument list $x is inapplicable to 3-ary function")
+  def function[R1 <: Value, R2 <: Value, R3 <: Value](f: (R1, R2, R3) => Str)(implicit m1: Manifest[R1], m2: Manifest[R2], m3: Manifest[R3]) = Function {
+    case m1(r1) :: m2(r2) :: m3(r3) :: Nil =>
+      f(r1, r2, r3)
+    case r1 :: r2 :: r3 :: Nil =>
+      val m1Class = m1.runtimeClass
+      val r1Class = r1.getClass
+      val m2Class = m2.runtimeClass
+      val r2Class = r2.getClass
+      val (expected, found) = {
+        if (r1Class != m1Class) (m1Class.getTypeName, r1Class.getTypeName)
+        else if (r2Class != m1Class) (m2Class.getTypeName, r2Class.getTypeName)
+        else (m3.runtimeClass.getTypeName, r3.getClass.getTypeName)
+      }
+      throw InternalEvaluationError(WrongArgumentTypeError(expected, found))
+    case x =>
+      throw InternalEvaluationError(WrongNumberOfArgumentsError(3, x.length))
   }
 }
 
@@ -118,7 +146,7 @@ object ValueHierarchy {
     protected def resolvePath(name: List[String]): Value = f(name)
   }
 
-  def map(m: Map[List[String], Value]) = ValueHierarchy { path =>
+  def map(m: Map[List[String], Value]): ValueHierarchy = ValueHierarchy { path =>
     m.get(path).orNull
   }
 
@@ -128,16 +156,20 @@ object ValueHierarchy {
   def names(ns: (String, Value)*): ValueHierarchy =
     names(ns.toMap)
 
-  def yaml(src: String): ValueHierarchy = {
+  def yaml(src: String)(implicit file: sourcecode.File): ValueHierarchy = yamlInternal(src)(FileInfo(file, isExternal = false))
+
+  private[thera] def yamlInternal(src: String)(implicit fileInfo: FileInfo): ValueHierarchy = {
     def valueFromNode(node: Json): Value = {
       @annotation.tailrec
       def searchInMapping(path: List[String], m: JsonObject): Value =
         path match {
           case Nil => null
           case name :: Nil => valueFromNode(m(name).orNull)
-          case name :: rest => m(name).orNull match {
-            case x if x.isObject => searchInMapping(rest, x.asObject.orNull)
-            case _ => null
+          case name :: rest =>
+            m(name).orNull match {
+              case null => throw InternalEvaluationError(NonExistentTopLevelVariableError(path.mkString(".")))
+              case x if x.isObject => searchInMapping(rest, x.asObject.orNull)
+              case _ => null
           }
         }
 
@@ -154,8 +186,16 @@ object ValueHierarchy {
       }
     }
 
-    val mapping: Json = io.circe.yaml.parser.parse(src).right.get
-    valueFromNode(mapping).asInstanceOf[ValueHierarchy]
+    io.circe.yaml.parser.parse(src) match {
+      case Left(ParsingFailure(_, e: MarkedYAMLException)) =>
+        val filename = fileInfo.file.value
+        val mark = e.getProblemMark
+        val line = mark.getLine
+        val code = src.linesIterator.toList(line)
+        throw ParserError(filename, if (fileInfo.isExternal) line + 2 else Utils.getLineNb(code, filename),
+          mark.getColumn + 1, code, YamlError)
+      case Right(mapping) => valueFromNode(mapping).asInstanceOf[ValueHierarchy]
+    }
   }
 
   def empty: ValueHierarchy = ValueHierarchy { _ => null }

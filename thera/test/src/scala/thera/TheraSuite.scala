@@ -1,13 +1,18 @@
 package thera
 
-import ValueHierarchy._, Function._
+import java.io.File
 
+import ValueHierarchy._
+import Function._
+import thera.reporting.{EvaluationError, InvalidFunctionUsageError, InvalidLambdaUsageError, NonExistentFunctionError, NonExistentNonTopLevelVariableError, NonExistentTopLevelVariableError, ParserError, SyntaxError, WrongArgumentTypeError, WrongNumberOfArgumentsError, YamlError}
 import utest._
 import utils._
 
 object TheraSuite extends TestSuite {
   val tests = Tests {
     def read(name: String) = readResource(s"/evaluate/$name")
+
+    def getTemplateFile(name: String): File = new File(getClass.getResource(s"/evaluate/$name").getFile)
 
     test("File-defined") {
       def check(name: String, ctx: ValueHierarchy = ValueHierarchy.empty): Unit = {
@@ -43,14 +48,6 @@ object TheraSuite extends TestSuite {
       }
     }
 
-    test("wrong-number-of-params") {
-      val f = function[Value] { _ => Str("") }
-      val e = intercept[RuntimeException] {
-        Thera("${f: a, b}").mkString(names("f" -> f))
-      }
-      assert(e.getMessage == "Argument list List(Str(a), Str(b)) is inapplicable to 1-ary function")
-    }
-
     test("templating capabilities") {
       val bodySrc = read("/templating-capabilities/body")
       val bodyExpected = read("/templating-capabilities/body.check")
@@ -61,6 +58,148 @@ object TheraSuite extends TestSuite {
       val result = func(body.mkValue :: Nil)
 
       assert(result == bodyExpected)
+    }
+
+    test("templating capabilities from file") {
+      val bodySrc = getTemplateFile("templating-capabilities/body")
+      val bodyExpected = read("/templating-capabilities/body.check")
+      val templateSrc = getTemplateFile("templating-capabilities/template")
+
+      val body = Thera(bodySrc)
+      val func = Thera(templateSrc).mkFunction(body.context)
+      val result = func(body.mkValue :: Nil)
+
+      assert(result == bodyExpected)
+    }
+
+    test("Invalid function usage in template") {
+      val templateSrc = getTemplateFile("errors-templates/invalid-function-usage")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc).mkString
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 30,
+        """Hello! We are located at the ${foreach}!""", InvalidFunctionUsageError("foreach"))
+
+      assert(error == expected)
+    }
+
+    test("Invalid lambda usage in template") {
+      val templateSrc = getTemplateFile("errors-templates/lambda")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 36,
+       """Hello! We are located at the ${foo => ${foo} ${foo}}!""", InvalidLambdaUsageError)
+
+      assert(error == expected)
+    }
+
+    test("YAML parsing error in template") {
+      val templateSrc = getTemplateFile("errors-templates/yaml")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = ParserError(templateSrc.getAbsolutePath, 6, 23,
+        """    -  name: "Mercury", mass: "3.30 * 10^23" }""", YamlError)
+
+      assert(error == expected)
+    }
+
+    test("Invalid syntax error 1 in template") {
+      val templateSrc = getTemplateFile("errors-templates/invalid-syntax-1")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = ParserError(templateSrc.getAbsolutePath, 18, 21,
+        """${foreach: ${system planets}, ${planet => \""", SyntaxError)
+
+      assert(error == expected)
+    }
+
+    test("Invalid syntax error 2 in template") {
+      val templateSrc = getTemplateFile("errors-templates/invalid-syntax-2")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc)
+      }
+
+      val expected = ParserError(templateSrc.getAbsolutePath, 15, 32,
+        """Hello! We are located at the $x{system.name}!""", SyntaxError)
+
+      assert(error == expected)
+    }
+
+    test("Non-existent function usage in template") {
+      val templateSrc = getTemplateFile("errors-templates/non-existent-function")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc).mkString
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 18, 1,
+        """${foreachs: ${system.planets}, ${planet => \""", NonExistentFunctionError("foreachs"))
+
+      assert(error == expected)
+    }
+
+    test("Non-existent non-top-level variable usage in template") {
+      val templateSrc = getTemplateFile("errors-templates/non-existent-non-top-level-variable")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc).mkString
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 30,
+        """Hello! We are located at the ${system.namee}!""", NonExistentNonTopLevelVariableError("system.namee"))
+
+      assert(error == expected)
+    }
+
+    test("Non-existent top-level variable usage in template") {
+      val templateSrc = getTemplateFile("errors-templates/non-existent-top-level-variable")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc).mkString
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 15, 30,
+        """Hello! We are located at the ${ssystem.name}!""", NonExistentTopLevelVariableError("ssystem.name"))
+
+      assert(error == expected)
+    }
+
+    test("Wrong argument type for function in template") {
+      val templateSrc = getTemplateFile("errors-templates/wrong-argument-type-function")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc).mkString
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 18, 1,
+        """${foreach: ${system.planets}, foo}""", WrongArgumentTypeError("thera.Function", "thera.Str"))
+
+      assert(error == expected)
+    }
+
+    test("Wrong number of arguments for function in template") {
+      val templateSrc = getTemplateFile("errors-templates/wrong-arguments-number-function")
+
+      val error = intercept[reporting.Error] {
+        Thera(templateSrc).mkString
+      }
+
+      val expected = EvaluationError(templateSrc.getAbsolutePath, 18, 1,
+        """${foreach: ${system.planets}, ${planet => \""", WrongNumberOfArgumentsError(2, 3))
+
+      assert(error == expected)
     }
 
     test("Variables can evaluate to functions") {
