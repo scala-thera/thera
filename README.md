@@ -1,6 +1,6 @@
 # Thera - the templating engine for Scala
 
-![CI](https://github.com/anatoliykmetyuk/thera/workflows/CI/badge.svg) [![Gitter](https://badges.gitter.im/akmetiuk/thera.svg)](https://gitter.im/akmetiuk/thera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
+![CI](https://github.com/scala-thera/thera/workflows/CI/badge.svg) [![Gitter](https://badges.gitter.im/akmetiuk/thera.svg)](https://gitter.im/akmetiuk/thera?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge)
 
 ```scala
 import thera._
@@ -69,19 +69,19 @@ Thera is a template engine for Scala. It is intended to help people build static
 Requires Scala 2.13. Add the following dependency to your SBT project:
 
 ```scala
-libraryDependencies += "com.akmetiuk" %% "thera" % "0.2.0-M2"
+libraryDependencies += "com.akmetiuk" %% "thera" % "0.2.0-M3"
 ```
 
 Or in Mill:
 
 ```scala
-def ivyDeps = Agg(ivy"com.akmetiuk::thera:0.2.0-M2")
+def ivyDeps = Agg(ivy"com.akmetiuk::thera:0.2.0-M3")
 ```
 
 Or in Ammonite:
 
 ```scala
-import $ivy.`com.akmetiuk::thera:0.2.0-M2`
+import $ivy.`com.akmetiuk::thera:0.2.0-M3`
 ```
 
 ## Templates
