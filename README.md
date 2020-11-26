@@ -60,6 +60,7 @@ Thera is a template engine for Scala. It is intended to help people build static
     - [Escapes](#escapes)
     - [Whitespace parsing](#whitespace-parsing)
   - [Philosophy](#philosophy)
+  - [Tutorial](#tutorial)
   - [Contributions](#contributions)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
@@ -276,6 +277,10 @@ ${foreach: ${system.planets}, ${planet => \
 This project started as a static website generator because there wasn't one for Scala and I needed one to generate my blog. Since then, however, I realised that Scala doesn't need a static website generator. It has a powerful enough ecosystem for a user to effortlessly unroll their own logic for generating a website using existing libraries. For instance, my [blog](https://akmetiuk.com/) uses [Ammonite](https://ammonite.io/) and [os-lib](https://github.com/lihaoyi/os-lib) in conjunction with [Pandoc](https://pandoc.org/), a [Docker](https://www.docker.com/) image that defines the environment with Pandoc in it and [GitHub Actions](https://github.com/features/actions) that runs the Docker and deploys the website to [GitHub Pages](https://pages.github.com/). You can have a look at the sources of the blog [here](https://github.com/anatoliykmetyuk/anatoliykmetyuk.github.io).
 
 The only missing piece in the ecosystem is a good templating engine. Thera attempts to provide such an engine for Scala. It doesn't aim to be a markdown processor or a website generator since these tasks can already be easily done using other tools.
+
+## Tutorial
+
+There is a [tutorial](https://github.com/scala-thera/scala-thera.github.io) explaining how to build a blog powered by Thera and published on GitHub Pages. You can also use it as a basis to start developing your own website.
 
 ## Contributions
 
